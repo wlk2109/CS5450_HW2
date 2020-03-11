@@ -9,10 +9,11 @@ void start_peers(int num_peers) {
 
 }
 
-int main(int argc, char **argv) {
-    num_peers = argv[1];
-    struct sockaddr_in server;
-
-    start_peers(num_peers)
+uint16_t parse_input(char *cmd_string){
 
 }
+
+
+
+
+

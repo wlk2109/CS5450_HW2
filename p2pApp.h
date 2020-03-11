@@ -7,15 +7,25 @@
 
 #include <GBN/*>
 
+/*--- Parameters ---*/
 #define NUM_SERVERS 4
 #define MAX_MSG_LEN 200
 #define MAX_MSGS 1000
+#define TRUE 	 1
+#define FALSE 	 0
 
 /*----- Message Types -----*/
 enum message_type {
     STATUS=0,
     RUMOR
 } message_type;
+
+enum command_type{
+    MSG = 0,
+    GET,
+    CRASH,
+    EXIT
+} command_type;
 
 /* Message Struct */
 typedef struct message {
@@ -26,6 +36,15 @@ typedef struct message {
     uint16_t vector_clock[NUM_SERVERS]; //status vector
     char msg[MAX_MSG_LEN]; //MAX_MSG_LEN is defined to be 200
 } message;
+
+typedef struct client_command{
+    enum command_type cmd_type;
+    char msg[MAX_MSG_LEN];
+};
+
+/*--- Functions ---*/
+uint16_t parse_input(char *cmd_string)
+void
 
 
 #endif //HOMEWORK_2_P2PAPP_H
