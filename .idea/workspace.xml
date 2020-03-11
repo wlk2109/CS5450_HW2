@@ -10,7 +10,8 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="258d256c-bc1c-43dc-8361-50ea0703aee6" name="Default Changelist" comment="">
-      <change beforePath="$PROJECT_DIR$/p2pApp.h" beforeDir="false" afterPath="$PROJECT_DIR$/p2pApp.h" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/p2pApp.c" beforeDir="false" afterPath="$PROJECT_DIR$/p2pApp.c" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -52,7 +53,7 @@
       <option name="presentableId" value="Default" />
       <updated>1583869788159</updated>
       <workItem from="1583869790369" duration="2738000" />
-      <workItem from="1583949835785" duration="22000" />
+      <workItem from="1583949835785" duration="2890000" />
     </task>
     <servers />
   </component>
