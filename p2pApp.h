@@ -13,6 +13,7 @@
 #define MAX_MSGS 1000
 #define TRUE 	 1
 #define FALSE 	 0
+#define ROOT_ID 20000
 
 /*----- Message Types -----*/
 enum message_type {
@@ -43,7 +44,7 @@ typedef struct client_command{
 };
 
 /*--- Functions ---*/
-uint16_t parse_input(char *cmd_string)
+void parse_input(char *cmd_string, client_command *client_cmd)
 void
 
 
