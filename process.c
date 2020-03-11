@@ -32,7 +32,7 @@ int main(int argc, char **argv) {
     //initialise all client_socket[] to 0 so not checked
     for (i = 0; i < NUM_SERVERS-1; i++)
     {
-        client_socket[i] = 0;
+        peer_sockets[i] = 0;
     }
 
     //create a master socket - this will be the proxy one

@@ -10,7 +10,6 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="258d256c-bc1c-43dc-8361-50ea0703aee6" name="Default Changelist" comment="">
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/process.c" beforeDir="false" afterPath="$PROJECT_DIR$/process.c" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
