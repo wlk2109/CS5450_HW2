@@ -9,6 +9,7 @@
 
 #define NUM_SERVERS 4
 #define MAX_MSG_LEN 200
+#define MAX_MSGS 1000
 
 /*----- Message Types -----*/
 enum message_type {
