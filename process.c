@@ -26,6 +26,10 @@ int main(int argc, char **argv) {
 
     char buffer[1025];  //data buffer of 1K
 
+    char msg_log[MAX_MSGS][MAX_MSG_LEN+2] /*MESSAGE LOG. 2 additional chars for '<server_id>:'*/
+    /* TODO: Dynamically set number of servers based on input args*/
+    uint_16t vector_clock[NUM_SERVERS] /* Vector clock. */
+
     //set of socket descriptors
     fd_set readfds;
 
@@ -66,5 +70,27 @@ int main(int argc, char **argv) {
     while True{
 
     }
+    /*
+     * LISTEN
+     *
+     *
+     * RECEIVE
+     *
+     *
+     * PARSE
+     *
+     *
+     * PROCESS
+     *
+     *
+     * UPDATE
+     *
+     *
+     * SEND STUFF
+     *
+     *
+     * LISTEN AGAIN
+     *
+     * */
 
 }

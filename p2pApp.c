@@ -26,23 +26,44 @@ void process_cmd(client_command *client_cmd){
 
 }
 
+/*
+ * Crash the server.
+ * Run a local kill process command.
+ */
 void crash(){
 
 }
 
+/*
+ * Exit. We may not need this here.
+ */
 void exit(){
 
 }
 
+/*
+ * Put message in message log.
+ * Iterate the damn clock.
+ * Send messages to neighbors.
+ *
+ */
 void send_msg(){
 
 }
 
+/*
+ * may be able to handle this logic in process as it has the buffer.
+ */
 char * send_log(char **msg_log){
 
 }
 
-void update_log(){
+/*
+ * Process an incoming message.
+ * Add the message contents into the msg log.
+ *
+ */
+void update_log(message *msg, char **msg_log, int *vector_clock){
 
 }
 
