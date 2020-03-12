@@ -17,20 +17,19 @@ int main(int argc, char **argv) {
     char buffer[1025];  //data buffer of 1K
 
     char msg_log[MAX_MSGS][MAX_MSG_LEN+2] /*MESSAGE LOG. 2 additional chars for '<server_id>:'*/
-    /* TODO: Dynamically set number of servers based on input args*/
-    uint_16t vector_clock[NUM_SERVERS] /* Vector clock. */
+    uint16_t vector_clock[argv[2]] /* Vector clock. with n entries*/
 
     //set of socket descriptors
     fd_set readfds;
 
     //initialise all client_socket[] to 0 so not checked
-    for (i = 0; i < NUM_SERVERS-1; i++)
+    for (i = 0; i < argv[2]; i++)
     {
         peer_sockets[i] = 0;
     }
 
-    //create a master socket - this will be the proxy one
-    if( (master_socket = socket(AF_INET , SOCK_STREAM , 0)) == 0)
+    //create a master socket, all sockets will go through this hole
+    if( (master_socket = socket(AF_INET , SOCK_DGRAM , 0)) == 0)
     {
         perror("socket failed");
         exit(EXIT_FAILURE);
@@ -56,6 +55,17 @@ int main(int argc, char **argv) {
         exit(EXIT_FAILURE);
     }
     printf("Listener on port %d \n", PORT);
+
+    //try to specify maximum of 2 pending connections for the master socket
+    if (listen(master_socket, 2) < 0)
+    {
+        perror("listen");
+        exit(EXIT_FAILURE);
+    }
+
+    /*
+     * int select(int nfds, fd_set *readfds, fd_set *writefds, fd_set *exceptfds, struct timeval *timeout);
+     */
 
     while True{
 

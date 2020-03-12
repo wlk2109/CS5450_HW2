@@ -22,7 +22,7 @@ void parse_input(char *cmd_string, client_command *client_cmd){
  * Process a command.
  * Based on command type, do the thing.
  */
-void process_cmd(client_command *client_cmd){
+void process_cmd(client_command *client_cmd, char **msg_log, uint16_t *vector_clock){
 
 }
 
