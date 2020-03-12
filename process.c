@@ -19,10 +19,11 @@ int main(int argc, char **argv) {
     int master_socket;
     int addrlen;
     int peer_sockets[2];
-    int curr_port_for_peers;
-    int curr_port_for_proxy;
+    int curr_port;
     struct sockaddr_in address;
+
     int option = TRUE;
+
     char buffer[1025];  //data buffer of 1K
 
     char msg_log[MAX_MSGS][MAX_MSG_LEN+2] /*MESSAGE LOG. 2 additional chars for '<server_id>:'*/
@@ -32,17 +33,11 @@ int main(int argc, char **argv) {
     //set of socket descriptors
     fd_set readfds;
 
-    if (argc != 3){
-        printf("got wrong arguments!"");
-        exit(-1);
+    //initialise all client_socket[] to 0 so not checked
+    for (i = 0; i < NUM_SERVERS-1; i++)
+    {
+        peer_sockets[i] = 0;
     }
-
-    curr_num_servers = argc[2];
-    curr_port_for_peers = argc[3];
-
-    //find all neighbouring ports
-    peer_sockets[0] = curr_port_for_peers - 1;
-    peer_sockets[1] = curr_port_for_peers + 1;
 
     //create a master socket - this will be the proxy one
     if( (master_socket = socket(AF_INET , SOCK_STREAM , 0)) == 0)
@@ -51,7 +46,7 @@ int main(int argc, char **argv) {
         exit(EXIT_FAILURE);
     }
 
-    //set master socket to allow multiple connections (this is where u can differentiate between tcp and udp)
+    //set master socket to allow multiple connections
     //TODO: Look into if using the right option here after
     if( setsockopt(master_socket, SOL_SOCKET, SO_REUSEADDR, (char *)&option, sizeof(option)) < 0 )
     {
@@ -62,7 +57,7 @@ int main(int argc, char **argv) {
     //type of socket created
     address.sin_family = AF_INET;
     address.sin_addr.s_addr = INADDR_ANY;
-    address.sin_port = htons( curr_port_for_peers );
+    address.sin_port = htons( curr_port );
 
     //bind the socket to localhost defined port
     if (bind(master_socket, (struct sockaddr *)&address, sizeof(address))<0)
