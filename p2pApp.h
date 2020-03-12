@@ -2,10 +2,20 @@
 // Created by Will Krasnoff on 3/10/20.
 //
 
-#ifndef HOMEWORK_2_P2PAPP_H
-#define HOMEWORK_2_P2PAPP_H
+#ifndef _p2pApp_h
+#define _p2pApp_h
 
-#include <GBN/*>
+#include <stdio.h>
+#include <string.h>   //strlen
+#include <stdlib.h>
+#include <errno.h>
+#include <unistd.h>   //close
+#include <arpa/inet.h>    //close
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <sys/time.h> //FD_SET, FD_ISSET, FD_ZERO macros
+
 
 /*--- Parameters ---*/
 #define NUM_SERVERS 4

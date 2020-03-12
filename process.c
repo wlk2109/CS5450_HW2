@@ -2,17 +2,7 @@
 // Created by Will Krasnoff on 3/11/20.
 //
 
-#include p2pApp.h
-#include <stdio.h>
-#include <string.h>   //strlen
-#include <stdlib.h>
-#include <errno.h>
-#include <unistd.h>   //close
-#include <arpa/inet.h>    //close
-#include <sys/types.h>
-#include <sys/socket.h>
-#include <netinet/in.h>
-#include <sys/time.h> //FD_SET, FD_ISSET, FD_ZERO macros
+#include "p2pApp.h"
 
 int main(int argc, char **argv) {
 
