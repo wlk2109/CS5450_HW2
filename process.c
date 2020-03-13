@@ -15,21 +15,22 @@
 
 #define TRUE   1
 #define FALSE  0
-#define PORT 8082
+
 
 int main(int argc , char *argv[])
 {
-    int opt = TRUE;
-    int master_socket , addrlen , new_socket , client_socket[30] ,
-            max_clients = 30 , activity, i , valread , sd;
-    int max_sd;
-    struct sockaddr_in address;
 
     int pid = strtol(argv[1], NULL, 10);
     int num_procs = strtol(argv[2], NULL, 10);
-    int port = strtol(argv[3], NULL, 10);
+    int PORT = strtol(argv[3], NULL, 10);
 
-    printf("The port is: %d\n", port);
+    printf("The port is: %d\n", PORT);
+
+    int opt = TRUE;
+    int master_socket , addrlen , new_socket , client_socket[num_procs] ,
+            max_clients = num_procs , activity, i , valread , sd;
+    int max_sd;
+    struct sockaddr_in address;
 
     char buffer[1025];  //data buffer of 1K
 
