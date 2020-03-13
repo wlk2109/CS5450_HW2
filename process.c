@@ -24,7 +24,7 @@ int main(int argc , char *argv[])
     int pid = strtol(argv[1], NULL, 10);
     int num_procs = strtol(argv[2], NULL, 10);
     int PORT = strtol(argv[3], NULL, 10);
-    
+
     printf("The port is: %d\n", PORT);
 
     int opt = TRUE;
@@ -36,7 +36,6 @@ int main(int argc , char *argv[])
     char msg_log[MAX_MSGS][MAX_MSG_LEN+2]; /*MESSAGE LOG. 2 additional chars for '<server_id>:'*/
     uint16_t vector_clock[num_procs]; /* Vector clock. with n entries*/
 
-    printf("The port is: %d\n", port);
 
     char buffer[1025];  //data buffer of 1K
 

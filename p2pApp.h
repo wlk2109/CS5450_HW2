@@ -24,7 +24,7 @@
 #define TRUE 	 1
 #define FALSE 	 0
 #define ROOT_ID 20000
-#define PORT 1738
+//#define PORT 1738
 
 /*----- Message Types -----*/
 enum message_type {
