@@ -34,8 +34,7 @@ void crash(){
 /*
  * Exit. We may not need this here.
  */
-void exit(){
-}
+void exit(){}
 
 /*
  * Put message in message log.
@@ -49,8 +48,20 @@ void send_msg(){
 /*
  * may be able to handle this logic in process as it has the buffer.
  */
-char * send_log(char **msg_log){
-    return(-1);
+void send_log(char **msg_log, size_t num_msg, char *chat_log){
+    /*
+     * Zero out old chatlog
+     */
+    printf("sending log");
+    memset(chat_log, 0, sizeof(*chat_log));
+    int i;
+    for(i =0; i<num_msg; i++){
+        if (i>0){
+            strcat(chat_log, ",");
+        }
+        strcat(chat_log,msg_log[i]);
+    }
+    printf("Chat Log in p2pApp: %s\n", chat_log);
 }
 
 /*

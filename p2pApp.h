@@ -63,7 +63,7 @@ void process_cmd(struct client_command *client_cmd, char **msg_log, uint16_t *ve
 void crash();
 void exit();
 void send_msg();
-char * send_log(char **msg_log);
+void send_log(char **msg_log, size_t num_msg, char *chat_log);
 void update_log(struct message *msg, char **msg_log, int *vector_clock);
 
 
