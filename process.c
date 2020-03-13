@@ -23,16 +23,17 @@ int main(int argc , char *argv[])
 
     int pid = strtol(argv[1], NULL, 10);
     int num_procs = strtol(argv[2], NULL, 10);
-    int PORT = strtol(argv[3], NULL, 10);
+    int PORT = atoi(argv[3]);
 
     printf("The port is: %d\n", PORT);
     fflush(stdout);
 
     int opt = TRUE;
-    int master_socket , addrlen , new_socket , client_socket[num_procs] ,
+    int master_socket , p2p_socket, addrlen , new_socket , client_socket[num_procs] ,
             max_clients = num_procs , activity, i , valread , sd;
     int max_sd;
     struct sockaddr_in address;
+    struct sockaddr_in p2p_address;
 
     char msg_log[MAX_MSGS][MAX_MSG_LEN+2]; /*MESSAGE LOG. 2 additional chars for '<server_id>:'*/
     uint16_t vector_clock[num_procs]; /* Vector clock. with n entries*/
@@ -59,6 +60,13 @@ int main(int argc , char *argv[])
         exit(EXIT_FAILURE);
     }
 
+    //create a p2p socket
+    if( (p2p_socket = socket(AF_INET , SOCK_DGRAM , 0)) == 0)
+    {
+        perror("socket failed");
+        exit(EXIT_FAILURE);
+    }
+
     //set master socket to allow multiple connections ,
     //this is just a good habit, it will work without this
     if( setsockopt(master_socket, SOL_SOCKET, SO_REUSEADDR, (char *)&opt,
@@ -73,7 +81,9 @@ int main(int argc , char *argv[])
     address.sin_addr.s_addr = INADDR_ANY;
     address.sin_port =htons(PORT);
 
-    //bind the socket to localhost port 8888
+    printf("Port is: %d \n", address.sin_port);
+
+    //bind the socket to localhost port
     if (bind(master_socket, (struct sockaddr *)&address, sizeof(address))<0)
     {
         perror("bind failed");
@@ -81,6 +91,19 @@ int main(int argc , char *argv[])
     }
     printf("Listener on port %d \n", address.sin_port);
     fflush(stdout);
+
+    p2p_address.sin_family = AF_INET;
+    p2p_address.sin_addr.s_addr = INADDR_ANY;
+    int p2p_port = 20000 + pid;
+    p2p_address.sin_port =htons(p2p_port);
+
+    if (bind(p2p_socket, (struct sockaddr *)&p2p_address, sizeof(p2p_address))<0)
+    {
+        perror("bind failed");
+        exit(EXIT_FAILURE);
+    }
+
+    client_socket[0] = p2p_socket;
 
     //try to specify maximum of 3 pending connections for the master socket
     if (listen(master_socket, 3) < 0)
@@ -101,6 +124,7 @@ int main(int argc , char *argv[])
 
         //add master socket to set
         FD_SET(master_socket, &readfds);
+        FD_SET(p2p_socket, &readfds);
         max_sd = master_socket;
 
         //add child sockets to set
@@ -131,7 +155,6 @@ int main(int argc , char *argv[])
         //then its an incoming connection
         if (FD_ISSET(master_socket, &readfds))
         {
-
             if ((new_socket = accept(master_socket,
                                      (struct sockaddr *)&address, (socklen_t*)&addrlen))<0)
             {
