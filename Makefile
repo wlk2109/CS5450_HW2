@@ -7,7 +7,7 @@ AR              = ar
 CFLAGS          = -Wall -ansi -D_GNU_SOURCE 
 LFLAGS          = -Wall -ansi
 
-PROCESSOBJS		= process.o p2pApp.o
+PROCESSOBJS		= p2pApp.o process.o
 ALLEXEC			= process
 
 .c.o:
@@ -15,7 +15,7 @@ ALLEXEC			= process
 
 all: $(ALLEXEC)
 
-sender: $(SENDEROBJS)
+process: $(PROCESSOBJS)
 	$(LD) $(LFLAGS) -o $@ $(PROCESSOBJS)
 
 clean:
