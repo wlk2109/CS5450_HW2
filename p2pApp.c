@@ -2,6 +2,7 @@
 // Created by Will Krasnoff on 3/10/20.
 //
 
+#include "p2pApp.h"
 
 void start_peers(int num_peers) {
     return(-1);

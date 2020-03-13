@@ -25,9 +25,9 @@ int main(int argc , char *argv[])
     int max_sd;
     struct sockaddr_in address;
 
-    int pid = argv[1];
-    int num_procs = argv[2];
-    int port = argv[3];
+    int pid = strtol(argv[1], NULL, 10);
+    int num_procs = strtol(argv[2], NULL, 10);
+    int port = strtol(argv[3], NULL, 10);
 
     printf("The port is: %d\n", port);
 

@@ -52,7 +52,7 @@ typedef struct message {
 typedef struct client_command{
     enum command_type cmd_type;
     char msg[MAX_MSG_LEN];
-};
+} client_command;
 
 /*--- Functions ---*/
 void parse_input(char *cmd_string, struct client_command *client_cmd);
