@@ -24,6 +24,7 @@
 #define TRUE 	 1
 #define FALSE 	 0
 #define ROOT_ID 20000
+#define PORT 1738
 
 /*----- Message Types -----*/
 enum message_type {
@@ -54,8 +55,15 @@ typedef struct client_command{
 };
 
 /*--- Functions ---*/
-void parse_input(char *cmd_string, client_command *client_cmd)
-void
+void parse_input(char *cmd_string, struct client_command *client_cmd);
+void start_peers(int num_peers);
+void parse_input(char *cmd_string, struct client_command *client_cmd);
+void process_cmd(struct client_command *client_cmd, char **msg_log, uint16_t *vector_clock);
+void crash();
+void exit();
+void send_msg();
+char * send_log(char **msg_log);
+void update_log(struct message *msg, char **msg_log, int *vector_clock);
 
 
 #endif //HOMEWORK_2_P2PAPP_H

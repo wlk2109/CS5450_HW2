@@ -1,6 +1,9 @@
 # Prerequisites
 *.d
 
+# Exectubles
+process
+
 # Object files
 *.o
 *.ko

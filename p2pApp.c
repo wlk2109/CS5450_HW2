@@ -4,7 +4,7 @@
 
 
 void start_peers(int num_peers) {
-
+    return(-1);
 }
 
 /*
@@ -15,7 +15,7 @@ void start_peers(int num_peers) {
  *
  */
 void parse_input(char *cmd_string, client_command *client_cmd){
-
+    return(-1);
 }
 
 /*
@@ -23,7 +23,7 @@ void parse_input(char *cmd_string, client_command *client_cmd){
  * Based on command type, do the thing.
  */
 void process_cmd(client_command *client_cmd, char **msg_log, uint16_t *vector_clock){
-
+    return(-1);
 }
 
 /*
@@ -31,14 +31,14 @@ void process_cmd(client_command *client_cmd, char **msg_log, uint16_t *vector_cl
  * Run a local kill process command.
  */
 void crash(){
-
+    return(-1);
 }
 
 /*
  * Exit. We may not need this here.
  */
 void exit(){
-
+    return(-1);
 }
 
 /*
@@ -48,14 +48,14 @@ void exit(){
  *
  */
 void send_msg(){
-
+    return(-1);
 }
 
 /*
  * may be able to handle this logic in process as it has the buffer.
  */
 char * send_log(char **msg_log){
-
+    return(-1);
 }
 
 /*
@@ -64,7 +64,7 @@ char * send_log(char **msg_log){
  *
  */
 void update_log(message *msg, char **msg_log, int *vector_clock){
-
+    return(-1);
 }
 
 
