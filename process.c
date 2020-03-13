@@ -57,7 +57,7 @@ int main(int argc, char **argv) {
     printf("Listener on port %d \n", PORT);
 
     //try to specify maximum of 2 pending connections for the master socket
-    if (listen(master_socket, 2) < 0)
+    if (listen(master_socket, 3) < 0)
     {
         perror("listen");
         exit(EXIT_FAILURE);
@@ -66,6 +66,19 @@ int main(int argc, char **argv) {
     /*
      * int select(int nfds, fd_set *readfds, fd_set *writefds, fd_set *exceptfds, struct timeval *timeout);
      */
+
+    if ((new_socket = accept(server_fd, (struct sockaddr *)&address,
+                             (socklen_t*)&addrlen))<0)
+    {
+        perror("accept");
+        exit(EXIT_FAILURE);
+    }
+
+    valread = read( new_socket , buffer, 1024);
+    printf("%s\n",buffer );
+    char *hello = "Hello from server";
+    send(new_socket , hello , strlen(hello) , 0 );
+    printf("Hello message sent\n");
 
     while True{
 
