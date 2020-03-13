@@ -70,7 +70,7 @@ int main(int argc , char *argv[])
     //type of socket created
     address.sin_family = AF_INET;
     address.sin_addr.s_addr = INADDR_ANY;
-    address.sin_port = htons( PORT );
+    address.sin_port =htons(PORT);
 
     //bind the socket to localhost port 8888
     if (bind(master_socket, (struct sockaddr *)&address, sizeof(address))<0)
@@ -78,7 +78,7 @@ int main(int argc , char *argv[])
         perror("bind failed");
         exit(EXIT_FAILURE);
     }
-    printf("Listener on port %d \n", PORT);
+    printf("Listener on port %d \n", address.sin_port);
 
     //try to specify maximum of 3 pending connections for the master socket
     if (listen(master_socket, 3) < 0)
@@ -128,12 +128,15 @@ int main(int argc , char *argv[])
         //then its an incoming connection
         if (FD_ISSET(master_socket, &readfds))
         {
+
             if ((new_socket = accept(master_socket,
                                      (struct sockaddr *)&address, (socklen_t*)&addrlen))<0)
             {
                 perror("accept");
                 exit(EXIT_FAILURE);
             }
+
+            printf("This is the port in int: %d\n", ntohs(address.sin_port));
 
             //inform user of socket number - used in send and receive commands
             printf("New connection , socket fd is %d , ip is : %s , port : %d\n" , new_socket , inet_ntoa(address.sin_addr) , ntohs
