@@ -11,6 +11,7 @@
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
+#include "p2pApp.h"
 #include <sys/time.h> //FD_SET, FD_ISSET, FD_ZERO macros
 
 #define TRUE   1
@@ -28,6 +29,9 @@ int main(int argc , char *argv[])
     int pid = strtol(argv[1], NULL, 10);
     int num_procs = strtol(argv[2], NULL, 10);
     int port = strtol(argv[3], NULL, 10);
+
+    char msg_log[MAX_MSGS][MAX_MSG_LEN+2]; /*MESSAGE LOG. 2 additional chars for '<server_id>:'*/
+    uint16_t vector_clock[num_procs]; /* Vector clock. with n entries*/
 
     printf("The port is: %d\n", port);
 
