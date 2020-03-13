@@ -15,7 +15,7 @@
 
 #define TRUE   1
 #define FALSE  0
-#define PORT 8888
+#define PORT 8082
 
 int main(int argc , char *argv[])
 {
@@ -24,6 +24,12 @@ int main(int argc , char *argv[])
             max_clients = 30 , activity, i , valread , sd;
     int max_sd;
     struct sockaddr_in address;
+
+    int pid = argv[1];
+    int num_procs = argv[2];
+    int port = argv[3];
+
+    printf("The port is: %d\n", port);
 
     char buffer[1025];  //data buffer of 1K
 
