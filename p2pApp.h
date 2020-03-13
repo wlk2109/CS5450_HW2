@@ -51,6 +51,7 @@ typedef struct message {
 
 typedef struct client_command{
     enum command_type cmd_type;
+    uint16_t msg_id;
     char msg[MAX_MSG_LEN];
 } client_command;
 

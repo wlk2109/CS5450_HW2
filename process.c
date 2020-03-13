@@ -26,6 +26,7 @@ int main(int argc , char *argv[])
     int PORT = strtol(argv[3], NULL, 10);
 
     printf("The port is: %d\n", PORT);
+    fflush(stdout);
 
     int opt = TRUE;
     int master_socket , addrlen , new_socket , client_socket[num_procs] ,
@@ -35,7 +36,7 @@ int main(int argc , char *argv[])
 
     char msg_log[MAX_MSGS][MAX_MSG_LEN+2]; /*MESSAGE LOG. 2 additional chars for '<server_id>:'*/
     uint16_t vector_clock[num_procs]; /* Vector clock. with n entries*/
-
+    char incoming_message[256];
 
     char buffer[1025];  //data buffer of 1K
 
@@ -79,6 +80,7 @@ int main(int argc , char *argv[])
         exit(EXIT_FAILURE);
     }
     printf("Listener on port %d \n", address.sin_port);
+    fflush(stdout);
 
     //try to specify maximum of 3 pending connections for the master socket
     if (listen(master_socket, 3) < 0)
@@ -90,6 +92,7 @@ int main(int argc , char *argv[])
     //accept the incoming connection
     addrlen = sizeof(address);
     puts("Waiting for connections ...");
+    fflush(stdout);
 
     while(TRUE)
     {
@@ -137,6 +140,7 @@ int main(int argc , char *argv[])
             }
 
             printf("This is the port in int: %d\n", ntohs(address.sin_port));
+            fflush(stdout);
 
             //inform user of socket number - used in send and receive commands
             printf("New connection , socket fd is %d , ip is : %s , port : %d\n" , new_socket , inet_ntoa(address.sin_addr) , ntohs
@@ -192,6 +196,8 @@ int main(int argc , char *argv[])
                     //set the string terminating NULL byte on the end
                     //of the data read
                     buffer[valread] = '\0';
+                    memcpy(incoming_message, buffer, valread+1);
+                    printf("Message from client: %s", incoming_message);
                     send(sd , buffer , strlen(buffer) , 0 );
                 }
             }
