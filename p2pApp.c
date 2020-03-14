@@ -63,6 +63,14 @@ void send_log(char **msg_log, size_t num_msg, char *chat_log){
     }
     printf("Chat Log in p2pApp: %s\n", chat_log);
 }
+/**
+ * Add a message to the message log.
+ * Returns the new number of messages in the log.
+ */
+size_t add_msg(char **msg_log, size_t num_msg, char *new_msg){
+    msg_log[num_msg] = new_msg;
+    return num_msg+1;
+}
 
 /*
  * Process an incoming message.

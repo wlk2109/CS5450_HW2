@@ -25,8 +25,9 @@ int main(int argc , char *argv[])
     int num_procs = strtol(argv[2], NULL, 10);
     int PORT = atoi(argv[3]);
 
+    int cmd_type;
+
     printf("The port is: %d\n", PORT);
-    fflush(stdout);
 
     int opt = TRUE;
     int master_socket , p2p_socket, addrlen , new_socket , client_socket[num_procs] ,
@@ -35,7 +36,8 @@ int main(int argc , char *argv[])
     struct sockaddr_in address;
     struct sockaddr_in p2p_address;
 
-    char msg_log[MAX_MSGS][MAX_MSG_LEN]; /*MESSAGE LOG. 2 additional chars for '<server_id>:'*/
+    char **msg_log = (char**) malloc(MAX_MSGS*sizeof(char *)); /*MESSAGE LOG. 2 additional chars for '<server_id>:'
+
     uint16_t vector_clock[num_procs]; /* Vector clock. with n entries*/
     char incoming_message[256];
     size_t num_msgs = 0;
@@ -44,25 +46,17 @@ int main(int argc , char *argv[])
 
     char buffer[1025];  //data buffer of 1K
 
+    /*TODO: Delete this assignment*/
+    cmd_type = GET;
+    char test_msg[200];
+    strcpy(test_msg, "Hello Ishan");
+    num_msgs = add_msg(msg_log, num_msgs, test_msg);
+    num_msgs = add_msg(msg_log, num_msgs, test_msg);
+    send_log(msg_log, num_msgs, chat_log_out);
+    printf("Chatlog out: %s\n", chat_log_out);
+
     //set of socket descriptors
     fd_set readfds;
-
-    /*
-     * for testing
-     */
-    if(TRUE){
-        strcpy(msg_log[0],"Hello");
-        num_msgs++;
-        printf("Message %d:, %s\n", num_msgs, msg_log[num_msgs-1]);
-        fflush(stdout);
-    }
-
-    if(TRUE){
-        send_log(msg_log, num_msgs, chat_log_out);
-        printf("Chat log: %s\n", chat_log_out);
-        fflush(stdout);
-    }
-
 
     //a message
     char *message = "ECHO Daemon v1.0 \r\n";
@@ -239,14 +233,21 @@ int main(int argc , char *argv[])
                     //set the string terminating NULL byte on the end
                     //of the data read
                     buffer[valread] = '\0';
+
+                    /*Get incoming message.*/
                     memcpy(incoming_message, buffer, valread+1);
-                    printf("Sucks my balls\n");
-
-
                     printf("Message from client: %s\n", incoming_message);
-                    fflush(stdout);
 
-                    send(sd , buffer , strlen(buffer) , 0 );
+                    /*parse the message*/
+
+
+
+                    if (cmd_type == GET){
+                        send_log(msg_log, num_msgs, chat_log_out);
+                        printf("this is the correct version!\n");
+                        send(sd , chat_log_out , strlen(chat_log_out) , 0 );
+                    }
+
                 }
             }
         }

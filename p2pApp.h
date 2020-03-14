@@ -65,6 +65,7 @@ void exit();
 void send_msg();
 void send_log(char **msg_log, size_t num_msg, char *chat_log);
 void update_log(struct message *msg, char **msg_log, int *vector_clock);
+size_t add_msg(char **msg_log, size_t num_msg, char *new_msg);
 
 
 #endif //HOMEWORK_2_P2PAPP_H
