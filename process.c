@@ -36,24 +36,56 @@ int main(int argc , char *argv[])
     struct sockaddr_in address;
     struct sockaddr_in p2p_address;
 
-    char **msg_log = (char**) malloc(MAX_MSGS*sizeof(char *)); /*MESSAGE LOG. 2 additional chars for '<server_id>:'
+
+    /*--- Things that need to be freed ---*/
+
+    /* msg_log holds the message content */
+    char **msg_log = (char**) malloc(MAX_MSGS*sizeof(char *));
+
+    /* msg_ids holds the message identifier as an int array
+     * in the format [<originalsender>,<seqno>]
+     * for example msg 15 from server 1: [1,15]
+     */
+    uint16_t **msg_ids = (uint16_t **) malloc(MAX_MSGS*sizeof(uint16_t *));
+
+    /* a single client command structure to buffer incoming commands*/
+    struct client_command *cmd_buf = malloc(sizeof(struct client_command));
+    struct message *peer_msg_buf = malloc(sizeof(struct message));
+
 
     uint16_t vector_clock[num_procs]; /* Vector clock. with n entries*/
+
     char incoming_message[256];
+
     size_t num_msgs = 0;
 
     char chat_log_out[(MAX_MSG_LEN+1)*MAX_MSGS];
 
     char buffer[1025];  //data buffer of 1K
 
-    /*TODO: Delete this assignment*/
-    cmd_type = GET;
-    char test_msg[200];
-    strcpy(test_msg, "Hello Ishan");
-    num_msgs = add_msg(msg_log, num_msgs, test_msg);
-    num_msgs = add_msg(msg_log, num_msgs, test_msg);
-    send_log(msg_log, num_msgs, chat_log_out);
-    printf("Chatlog out: %s\n", chat_log_out);
+
+    /*** TESTING ***/
+    /*testing parse_input*/
+    char fake_cmd[250];
+    strcpy(fake_cmd, "msg 12 chatLog for me and you");
+
+    cmd_type = parse_input(fake_cmd, cmd_buf);
+
+    printf("The command message received is of type %d. ",cmd_buf->cmd_type);
+    if (cmd_type == MSG){
+        printf("Message ID: %d, Message: %s\n",cmd_buf->msg_id, cmd_buf->msg);
+    }
+    strcpy(fake_cmd, "This is a test message my hombre");
+    /* test build message */
+
+
+
+
+
+
+    /*** END TESTING */
+
+
 
     //set of socket descriptors
     fd_set readfds;
@@ -239,7 +271,9 @@ int main(int argc , char *argv[])
                     printf("Message from client: %s\n", incoming_message);
 
                     /*parse the message*/
+                    cmd_type = parse_input(incoming_message, cmd_buf);
 
+                    printf("command Type: %d\n", cmd_type);
 
 
                     if (cmd_type == GET){

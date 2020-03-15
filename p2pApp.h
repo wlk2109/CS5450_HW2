@@ -56,16 +56,17 @@ typedef struct client_command{
 } client_command;
 
 /*--- Functions ---*/
-void parse_input(char *cmd_string, struct client_command *client_cmd);
-void start_peers(int num_peers);
-void parse_input(char *cmd_string, struct client_command *client_cmd);
+int parse_input(char *cmd_string, struct client_command *client_cmd);
 void process_cmd(struct client_command *client_cmd, char **msg_log, uint16_t *vector_clock);
 void crash();
 void exit();
 void send_msg();
 void send_log(char **msg_log, size_t num_msg, char *chat_log);
-void update_log(struct message *msg, char **msg_log, int *vector_clock);
+size_t update_log(message *msg, char **msg_log, size_t num_msg, int **msg_ids, int *vector_clock);
 size_t add_msg(char **msg_log, size_t num_msg, char *new_msg);
-
+int search_for_message(int **msg_ids, size_t num_msg, uint16_t tar_server, uint16_t tar_seqnum);
+void update_vector_clock(uint16_t * vector_clock, int **msg_ids, size_t num_msg, uint16_t new_msg_server);
+void print_vector_clock(int* vector_clock);
+void print_message(message *msg);
 
 #endif //HOMEWORK_2_P2PAPP_H
