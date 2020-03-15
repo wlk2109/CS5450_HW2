@@ -1,20 +1,17 @@
-//
-// Created by Will Krasnoff on 3/10/20.
-//
 
 #ifndef _p2pApp_h
 #define _p2pApp_h
 
 #include <stdio.h>
-#include <string.h>   //strlen
+#include <string.h>
 #include <stdlib.h>
 #include <errno.h>
-#include <unistd.h>   //close
-#include <arpa/inet.h>    //close
+#include <unistd.h>
+#include <arpa/inet.h>
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
-#include <sys/time.h> //FD_SET, FD_ISSET, FD_ZERO macros
+#include <sys/time.h>
 
 
 /*--- Parameters ---*/
@@ -24,7 +21,7 @@
 #define TRUE 	 1
 #define FALSE 	 0
 #define ROOT_ID 20000
-//#define PORT 1738
+/*#define PORT 1738*/
 
 /*----- Message Types -----*/
 enum message_type {
@@ -62,11 +59,14 @@ void crash();
 void exit();
 void send_msg();
 void send_log(char **msg_log, size_t num_msg, char *chat_log);
-size_t update_log(message *msg, char **msg_log, size_t num_msg, int **msg_ids, int *vector_clock);
-size_t add_msg(char **msg_log, size_t num_msg, char *new_msg);
+size_t update_log(message *msg, char **msg_log, size_t num_msg, uint16_t **msg_ids,
+        uint16_t *vector_clock, int num_procs);
 int search_for_message(int **msg_ids, size_t num_msg, uint16_t tar_server, uint16_t tar_seqnum);
-void update_vector_clock(uint16_t * vector_clock, int **msg_ids, size_t num_msg, uint16_t new_msg_server);
-void print_vector_clock(int* vector_clock);
-void print_message(message *msg);
+void update_vector_clock(uint16_t * vector_clock, uint16_t **msg_ids, size_t num_msg,
+        uint16_t new_msg_server, int num_procs);
+void print_vector_clock(uint16_t *vector_clock, int num_procs);
+void print_message(message *msg, int num_procs);
+void fill_message(message *msg_buff, enum message_type type, uint16_t server_pid,
+                  uint16_t seqnum, uint16_t *vector_clock, char *msg, int num_procs);
 
-#endif //HOMEWORK_2_P2PAPP_H
+#endif

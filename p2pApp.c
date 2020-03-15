@@ -28,7 +28,7 @@ int parse_input(char *cmd_string, client_command *client_cmd){
         printf("new token: %s\n", token);
 
         long m_id= strtol(token, NULL, 10);
-        printf("Message ID: %d\n",m_id);
+        printf("Message ID: %ld\n",m_id);
         client_cmd->msg_id = (uint16_t) m_id;
 
         token = strtok(NULL, "\0");
@@ -101,25 +101,16 @@ void send_log(char **msg_log, size_t num_msg, char *chat_log){
 }
 
 /**
- * Add a message to the message log.
- * Returns the new number of messages in the log.
- */
-size_t add_msg(char **msg_log, size_t num_msg, char *new_msg){
-    msg_log[num_msg] = new_msg;
-    return num_msg+1;
-}
-
-/**
  * Process an incoming message from a peer.
  * Add the message contents into the msg log.
  * Update vector clock
  *
  */
-size_t update_log(message *msg, char **msg_log, size_t num_msg, int **msg_ids, int *vector_clock){
+size_t update_log(message *msg, char **msg_log, size_t num_msg, uint16_t **msg_ids, uint16_t *vector_clock, int num_procs){
     /* Check Vector clock to see if the message is present */
     int expected_seq_num = vector_clock[msg->from]+1;
 
-    printf("New message from server: %d. Expecting seqnum: %d, received seq_num: %d",
+    printf("New message from server: %d. Expecting seqnum: %d, received seq_num: %d\n",
             msg->from,expected_seq_num, msg->seqnum);
 
     if (msg->seqnum!=expected_seq_num){
@@ -141,25 +132,30 @@ size_t update_log(message *msg, char **msg_log, size_t num_msg, int **msg_ids, i
     }
 
     /*allocated pointers to store message and msg_id*/
-    printf("Allocating memory for new storage");
+    printf("Allocating memory for new storage\n");
+
     char *msg_text = malloc(MAX_MSG_LEN* sizeof(char));
     uint16_t *msg_id = malloc(2*sizeof(uint16_t));
 
     /* assign values to the pointers. */
 
     strncpy(msg_text,msg->msg, msg->message_len);
+
     msg_id[0] = msg->from;
     msg_id[1] = msg->seqnum;
-    printf("Copyied message: %s. From: %d. seqnum: %d",msg_text,msg_id[0], msg_id[1]);
+
+    printf("Copied message: %s. From: %d. seqnum: %d\n",msg_text,msg_id[0], msg_id[1]);
 
     /* add the pointers to the cache. */
     msg_log[num_msg] = msg_text;
     msg_ids[num_msg] = msg_id;
 
+    printf("Copied message: %s. From: %d. seqnum: %d\n",msg_log[num_msg],msg_ids[num_msg][0], msg_ids[num_msg][1]);
+
     num_msg++;
 
     /* update vector clock */
-    update_vector_clock(vector_clock, msg_ids, num_msg, msg_id[0]);
+    update_vector_clock(vector_clock, msg_ids, num_msg, msg_id[0], num_procs);
 
     return num_msg;
 }
@@ -181,22 +177,25 @@ int search_for_message(int **msg_ids, size_t num_msg, uint16_t tar_server, uint1
  * Create a temp array for the given server
  * and fill with zeros or ones depending on if the message is there.
  */
-void update_vector_clock(uint16_t * vector_clock, int **msg_ids, size_t num_msg, uint16_t new_msg_server){
-    printf("Updating vector clock:\n");
-    print_vector_clock(vector_clock);
-    int *temp[MAX_MSGS];
+void update_vector_clock(uint16_t * vector_clock, uint16_t **msg_ids, size_t num_msg,
+        uint16_t new_msg_server, int num_procs){
+    printf("%d Total Messages. Updating vector clock:\n", num_msg);
+    print_vector_clock(vector_clock, num_procs);
+    int *temp[MAX_MSGS+1];
     int count = 0;
     memset(temp, FALSE, sizeof(*temp));
 
+
     int i;
     for (i = 0; i<num_msg; i++) {
+        printf("Message %d. From: %d. seqnum: %d\n", i, msg_ids[i][0], msg_ids[i][1]);
         if (msg_ids[i][0] == new_msg_server) {
             printf("Found a message on server %d, seq_num %d\n",new_msg_server, msg_ids[i][1]);
             temp[msg_ids[i][1]] = TRUE;
             count++;
         }
     }
-    for (i = 0; i<count; i++){
+    for (i = 1; i<=count; i++){
         if (temp[i]==FALSE){
             printf("Found first zero at index: %d", i);
             break;
@@ -206,7 +205,7 @@ void update_vector_clock(uint16_t * vector_clock, int **msg_ids, size_t num_msg,
     vector_clock[new_msg_server] = i-1;
 
     printf("New Vector Clock:\n");
-    print_vector_clock(vector_clock);
+    print_vector_clock(vector_clock, num_procs);
     return;
 }
 /**
@@ -214,33 +213,32 @@ void update_vector_clock(uint16_t * vector_clock, int **msg_ids, size_t num_msg,
  * This will make a message ready to send.
  */
 void fill_message(message *msg_buff, enum message_type type, uint16_t server_pid,
-        uint16_t seqnum, uint16_t *vector_clock, char *msg){
+        uint16_t seqnum, uint16_t *vector_clock, char *msg, int num_procs){
     msg_buff->seqnum = seqnum;
     msg_buff->from = server_pid;
     msg_buff->message_len = strlen(msg);
-    memcpy(msg_buff->vector_clock, vector_clock, sizeof(vector_clock));
+    memcpy(msg_buff->vector_clock, vector_clock, sizeof(*vector_clock)*num_procs);
     strcpy(msg_buff->msg, msg);
 
     printf("Filled Message:\n");
-    print_message(msg_buff);
+    print_message(msg_buff, num_procs);
 
     return;
 }
 
-void print_vector_clock(int* vector_clock){
-    size_t array_len = sizeof(vector_clock)/sizeof(vector_clock[0]);
+void print_vector_clock(uint16_t *vector_clock, int num_procs){
     int i;
-    for (i = 0; i<array_len; i++){
+    for (i = 0; i<num_procs; i++){
         printf("Server: %d. Last Seqnum: %d\n",i,vector_clock[i]);
     }
 }
 
-void print_message(message *msg){
+void print_message(message *msg, int num_procs){
     printf("Message Type: %d\n"
            "From Server: %d\n"
            "sequence Number:%d\n"
            "message contents: %s\n",msg->type, msg->from, msg->seqnum, msg->msg);
     printf(" Status vector from message:\n");
-    print_vector_clock(msg->vector_clock);
+    print_vector_clock(msg->vector_clock, num_procs);
     return;
 }
