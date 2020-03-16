@@ -22,10 +22,10 @@ int main(int argc , char *argv[])
 
     /*--- Things that need to be freed ---*/
 
-    /* msg_log holds the message content */
+    /* msg_log holds the message_t content */
     char **msg_log = (char**) malloc(MAX_MSGS*sizeof(char *));
 
-    /* msg_ids holds the message identifier as an int array
+    /* msg_ids holds the message_t identifier as an int array
      * in the format [<originalsender>,<seqno>]
      * for example msg 15 from server 1: [1,15]
      */
@@ -33,7 +33,7 @@ int main(int argc , char *argv[])
 
     /* a single client command structure to buffer incoming commands*/
     struct client_command *cmd_buf = malloc(sizeof(struct client_command));
-    struct message *peer_msg_buf = malloc(sizeof(struct message));
+    struct message_t *peer_msg_buf = malloc(sizeof(struct message_t));
 
 
     uint16_t vector_clock[num_procs]; /* Vector clock. with n entries*/
@@ -58,13 +58,13 @@ int main(int argc , char *argv[])
 
     cmd_type = parse_input(fake_cmd, cmd_buf);
 
-    printf("The command message received is of type %d. ",cmd_buf->cmd_type);
+    printf("The command message_t received is of type %d. ",cmd_buf->cmd_type);
     if (cmd_type == MSG){
         printf("Message ID: %d, Message: %s\n",cmd_buf->msg_id, cmd_buf->msg);
     }
 
-    strcpy(fake_cmd, "This is a test message my hombre");
-    /* test build message */
+    strcpy(fake_cmd, "This is a test message_t my hombre");
+    /* test build message_t */
     fill_message(peer_msg_buf, RUMOR, pid, 1, vector_clock, fake_cmd, num_procs);
 
     /* test update log*/
@@ -76,7 +76,7 @@ int main(int argc , char *argv[])
     /*set of socket descriptors*/
     fd_set readfds;
 
-    /*a message*/
+    /*a message_t*/
     char *message = "ECHO Daemon v1.0 \r\n";
 
     /*initialise all client_socket[] to 0 so not checked*/
@@ -201,13 +201,13 @@ int main(int argc , char *argv[])
             printf("New connection , socket fd is %d , ip is : %s , port : %d\n" , new_socket , inet_ntoa(address.sin_addr) , ntohs
                     (address.sin_port));
 
-            /*send new connection greeting message*/
+            /*send new connection greeting message_t*/
             if( send(new_socket, message, strlen(message), 0) != strlen(message) )
             {
                 perror("send");
             }
 
-            puts("Welcome message sent successfully");
+            puts("Welcome message_t sent successfully");
 
             /*add new socket to array of sockets*/
             for (i = 0; i < max_clients; i++)
@@ -231,7 +231,7 @@ int main(int argc , char *argv[])
             if (FD_ISSET( sd , &readfds))
             {
                 /*Check if it was for closing , and also read the
-                incoming message*/
+                incoming message_t*/
                 if ((valread = read( sd , buffer, 1024)) == 0)
                 {
                     /*Somebody disconnected , get his details and print*/
@@ -245,18 +245,18 @@ int main(int argc , char *argv[])
                     client_socket[i] = 0;
                 }
 
-                    /*Echo back the message that came in*/
+                    /*Echo back the message_t that came in*/
                 else
                 {
                     /*set the string terminating NULL byte on the end
                     of the data read*/
                     buffer[valread] = '\0';
 
-                    /*Get incoming message.*/
+                    /*Get incoming message_t.*/
                     memcpy(incoming_message, buffer, valread+1);
                     printf("Message from client: %s\n", incoming_message);
 
-                    /*parse the message*/
+                    /*parse the message_t*/
                     cmd_type = parse_input(incoming_message, cmd_buf);
 
                     printf("command Type: %d\n", cmd_type);

@@ -41,11 +41,12 @@ enum command_type{
 typedef struct message {
     enum message_type type;
     uint16_t message_len;
-    uint16_t from; //sender of the message, by server_id
+    uint16_t from;
+    uint16_t origin; /*original sender of the message_t, by server_id*/
     uint16_t seqnum;
-    uint16_t vector_clock[NUM_SERVERS]; //status vector
-    char msg[MAX_MSG_LEN]; //MAX_MSG_LEN is defined to be 200
-} message;
+    uint16_t vector_clock[NUM_SERVERS]; /*status vector*/
+    char msg[MAX_MSG_LEN]; /*MAX_MSG_LEN is defined to be 200*/
+}__attribute__((packed)) message_t;
 
 typedef struct client_command{
     enum command_type cmd_type;
@@ -60,14 +61,14 @@ void crash();
 void exit();
 void send_msg();
 void send_log(char **msg_log, size_t num_msg, char *chat_log);
-size_t update_log(message *msg, char **msg_log, size_t num_msg, uint16_t **msg_ids,
-        uint16_t *vector_clock, int num_procs);
+size_t update_log(message_t *msg, char **msg_log, size_t num_msg, uint16_t **msg_ids,
+                  uint16_t *vector_clock, int num_procs);
 int search_for_message(int **msg_ids, size_t num_msg, uint16_t tar_server, uint16_t tar_seqnum);
 void update_vector_clock(uint16_t * vector_clock, uint16_t **msg_ids, size_t num_msg,
         uint16_t new_msg_server, int num_procs);
 void print_vector_clock(uint16_t *vector_clock, int num_procs);
-void print_message(message *msg, int num_procs);
-void fill_message(message *msg_buff, enum message_type type, uint16_t server_pid,
+void print_message(message_t *msg, int num_procs);
+void fill_message(message_t *msg_buff, enum message_type type, uint16_t server_pid,
                   uint16_t seqnum, uint16_t *vector_clock, char *msg, int num_procs);
 
 #endif
