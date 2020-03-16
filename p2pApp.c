@@ -242,3 +242,13 @@ void print_message(message *msg, int num_procs){
     print_vector_clock(msg->vector_clock, num_procs);
     return;
 }
+
+ssize_t sendto_peer(int sockfd, const void *out_pkt, size_t len, int flags, const struct sockaddr *to, socklen_t tolen){
+
+    char *buffer = malloc(len);
+    memcpy(buffer, out_pkt, len);
+
+    int retval = sendto(sockfd, buffer, len, flags, to, tolen);
+    free(buffer);
+    return retval;
+}
