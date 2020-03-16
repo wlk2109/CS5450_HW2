@@ -33,7 +33,7 @@ int main(int argc , char *argv[])
 
     /* a single client command structure to buffer incoming commands*/
     struct client_command *cmd_buf = malloc(sizeof(struct client_command));
-    struct message_t *peer_msg_buf = malloc(sizeof(struct message_t));
+    struct message_t *peer_msg_buf = malloc(sizeof(message_t));
 
 
     uint16_t vector_clock[num_procs]; /* Vector clock. with n entries*/
