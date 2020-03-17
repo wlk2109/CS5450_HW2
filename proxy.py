@@ -134,9 +134,9 @@ def main():
                 time.sleep(2)
             # start the process
             if debug:
-                subprocess.Popen(['./process_new', str(pid), sp2[2], sp2[3]])
+                subprocess.Popen(['./process', str(pid), sp2[2], sp2[3]])
             else:
-                subprocess.Popen(['./process_new', str(pid), sp2[2], sp2[3]], stdout=sys.stdout, stderr=sys.stdout)
+                subprocess.Popen(['./process', str(pid), sp2[2], sp2[3]], stdout=sys.stdout, stderr=sys.stdout)
             # sleep for a while to allow the process be ready
             time.sleep(1)
             # connect to the port of the pid

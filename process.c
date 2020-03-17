@@ -4,275 +4,176 @@
 int main(int argc , char *argv[])
 {
 
-    int pid = strtol(argv[1], NULL, 10);
-    int num_procs = strtol(argv[2], NULL, 10);
-    int PORT = atoi(argv[3]);
-
-    int cmd_type;
-
-    printf("The port is: %d\n", PORT);
-
+    int pid = atoi(argv[1]);
+    int num_procs = atoi(argv[2]);
+    int tcp_port = atoi(argv[3]);
+    int udp_port = ROOT_ID + pid;
+    /** Server variables */
+    struct sockaddr_in client_address;
+    struct sockaddr_in tcp_address;
+    struct sockaddr_in udp_address;
+    int tcp_socket, new_tcp_socket, udp_socket, i, cmd_type;
     int opt = TRUE;
-    int master_socket , p2p_socket, addrlen , new_socket , client_socket[num_procs] ,
-            max_clients = num_procs , activity, i , valread , sd;
-    int max_sd;
-    struct sockaddr_in address;
-    struct sockaddr_in p2p_address;
-
-
-    /*--- Things that need to be freed ---*/
-
-    /* msg_log holds the message_t content */
+    fd_set active_fd_set, read_fd_set;
+    /** App Logic Variables*/
+    /* Vector clock. with n entries
+     * if vector_clock[i] == x:
+     * lowest message NOT SEEN from peer i is x
+     * */
+    uint16_t vector_clock[num_procs];
+    char incoming_message[256];
+    size_t num_msgs = 0;
+    char chat_log_out[(MAX_MSG_LEN+1)*MAX_MSGS];
+    char buffer[1025];  /*data buffer of 1K*/
+    /** Allocated variables */
     char **msg_log = (char**) malloc(MAX_MSGS*sizeof(char *));
-
     /* msg_ids holds the message_t identifier as an int array
-     * in the format [<originalsender>,<seqno>]
-     * for example msg 15 from server 1: [1,15]
+    * in the format [<originalsender>,<seqno>]
+    * for example msg 15 from server 1: [1,15]
      */
     uint16_t **msg_ids = (uint16_t **) malloc(MAX_MSGS*sizeof(uint16_t *));
-
-    /* a single client command structure to buffer incoming commands*/
     struct client_command *cmd_buf = malloc(sizeof(struct client_command));
     struct message_t *peer_msg_buf = malloc(sizeof(message_t));
 
-
-    uint16_t vector_clock[num_procs]; /* Vector clock. with n entries*/
-
-    char incoming_message[256];
-
-    size_t num_msgs = 0;
-
-    char chat_log_out[(MAX_MSG_LEN+1)*MAX_MSGS];
-
-    char buffer[1025];  /*data buffer of 1K*/
-
+    /* Init vector clock with 1's*/
     for (i=0; i<num_procs; i++){
-        vector_clock[i] = (uint16_t) 0;
+        vector_clock[i] = (uint16_t) 1;
     }
 
+    /** P2P sending stuff*/
 
     /*** TESTING ***/
-    /*testing parse_input*/
     char fake_cmd[250];
+    /*testing parse_input
+
     strcpy(fake_cmd, "msg 12 chatLog for me and you");
 
     cmd_type = parse_input(fake_cmd, cmd_buf);
 
-    printf("The command message_t received is of type %d. ",cmd_buf->cmd_type);
+    printf("The command message_t received is of type %d. \n",cmd_buf->cmd_type);
     if (cmd_type == MSG){
-        printf("Message ID: %d, Message: %s\n",cmd_buf->msg_id, cmd_buf->msg);
+        printf("Message ID: %d, Message: %s\n\n",cmd_buf->msg_id, cmd_buf->msg);
     }
+    */
 
-    strcpy(fake_cmd, "This is a test message_t my hombre");
+    strcpy(fake_cmd, "This is a test message my hombre");
     /* test build message_t */
     fill_message(peer_msg_buf, RUMOR, pid, 1, vector_clock, fake_cmd, num_procs);
 
     /* test update log*/
     update_log(peer_msg_buf, msg_log, num_msgs, msg_ids, vector_clock, num_procs);
+
     /*** END TESTING ***/
 
 
 
-    /*set of socket descriptors*/
-    fd_set readfds;
-
-    /*a message_t*/
-    char *message = "ECHO Daemon v1.0 \r\n";
-
-    /*initialise all client_socket[] to 0 so not checked*/
-    for (i = 0; i < max_clients; i++)
-    {
-        client_socket[i] = 0;
-    }
-
-    /*create a master socket*/
-    if( (master_socket = socket(AF_INET , SOCK_STREAM , 0)) == 0)
-    {
-        perror("socket failed");
+    /*Create a TCP socket*/
+    if ((tcp_socket = socket(AF_INET, SOCK_STREAM, 0)) < 0) {
+        perror("TCP Socket failed");
         exit(EXIT_FAILURE);
     }
-
-    /*create a p2p socket*/
-    if( (p2p_socket = socket(AF_INET , SOCK_DGRAM , 0)) == 0)
-    {
-        perror("socket failed");
-        exit(EXIT_FAILURE);
-    }
-
-    /*set master socket to allow multiple connections ,
-    this is just a good habit, it will work without this*/
-    if( setsockopt(master_socket, SOL_SOCKET, SO_REUSEADDR, (char *)&opt,
-                   sizeof(opt)) < 0 )
-    {
-        perror("setsockopt");
-        exit(EXIT_FAILURE);
-    }
-
-    /*type of socket created*/
-    address.sin_family = AF_INET;
-    address.sin_addr.s_addr = INADDR_ANY;
-    address.sin_port =htons(PORT);
-
-    printf("Port is: %d \n", address.sin_port);
-
-    /*bind the socket to localhost port*/
-    if (bind(master_socket, (struct sockaddr *)&address, sizeof(address))<0)
-    {
-        perror("bind failed");
-        exit(EXIT_FAILURE);
-    }
-    printf("Listener on port %d \n", address.sin_port);
+    printf("TCP Socket Made\n");
     fflush(stdout);
 
-    p2p_address.sin_family = AF_INET;
-    p2p_address.sin_addr.s_addr = INADDR_ANY;
-    int p2p_port = 20000 + pid;
-    p2p_address.sin_port =htons(p2p_port);
-
-    if (bind(p2p_socket, (struct sockaddr *)&p2p_address, sizeof(p2p_address))<0)
-    {
-        perror("bind failed");
+    /*Create a UDP socket*/
+    if ((udp_socket = socket(AF_INET, SOCK_DGRAM, 0)) < 0) {
+        perror("UDP Socket failed");
         exit(EXIT_FAILURE);
     }
 
-    client_socket[0] = p2p_socket;
+    if((setsockopt(tcp_socket, SOL_SOCKET, SO_REUSEADDR, (char *)&opt, sizeof(opt))) < 0)
+    {
+        perror("Server-setsockopt() error");
+        close(tcp_socket);
+        exit (-1);
+    }
+
+    /*Create TCP address */
+    memset(&tcp_address, 0, sizeof(struct sockaddr_in));
+    tcp_address.sin_family = AF_INET;
+    tcp_address.sin_addr.s_addr = INADDR_ANY;
+    tcp_address.sin_port = htons(tcp_port);
+
+    printf("Server added port %d to struct\n", ntohs(tcp_address.sin_port));
+
+    /*Create UDP address */
+    memset(&udp_address, 0, sizeof(struct sockaddr_in));
+    udp_address.sin_family = AF_INET;
+    udp_address.sin_addr.s_addr = htonl(INADDR_ANY);
+    udp_address.sin_port = htons(udp_port);
+
+    int tcp_addr_len = sizeof(tcp_address);
+
+    /*Bind the TCP socket to localhost port specified in start command*/
+    if (bind(tcp_socket, (struct sockaddr *) &tcp_address, sizeof(tcp_address)) < 0) {
+        perror("TCP bind failed");
+        exit(EXIT_FAILURE);
+    }
+    printf("TCP Bind Successful on port %d \n", ntohs(tcp_address.sin_port));
+    fflush(stdout);
 
     /*try to specify maximum of 3 pending connections for the master socket*/
-    if (listen(master_socket, 3) < 0)
-    {
-        perror("listen");
+    if (listen(tcp_socket, 3) < 0) {
+        perror("listen error");
         exit(EXIT_FAILURE);
     }
 
-    /*accept the incoming connection*/
-    addrlen = sizeof(address);
-    puts("Waiting for connections ...");
+    printf("TCP Listen\n");
+    printf("Listener on port %d \n", ntohs(tcp_address.sin_port));
     fflush(stdout);
 
-    while(TRUE)
-    {
-        /*clear the socket set*/
-        FD_ZERO(&readfds);
+    if ((new_tcp_socket = accept(tcp_socket, (struct sockaddr *) &client_address, (socklen_t *) &tcp_addr_len)) < 0) {
+        perror("accept");
+        fflush(stderr);
+        exit(EXIT_FAILURE);
+    }
 
-        /*add master socket to set*/
-        FD_SET(master_socket, &readfds);
-        FD_SET(p2p_socket, &readfds);
-        max_sd = master_socket;
+    /*inform user of socket number - used in send and receive commands*/
+    printf("New connection , socket fd is %d , ip is : %s , port : %d\n", new_tcp_socket,
+           inet_ntoa(tcp_address.sin_addr), ntohs(tcp_address.sin_port));
 
-        /*add child sockets to set*/
-        for ( i = 0 ; i < max_clients ; i++)
-        {
-            /*socket descriptor*/
-            sd = client_socket[i];
+    char *message = "TCP Connection Established between proxy and server\r\n";
+    fflush(stdout);
 
-            /*if valid socket descriptor then add to read list*/
-            if(sd > 0)
-                FD_SET( sd , &readfds);
+    /*send new connection greeting message_t*/
+    if (send(new_tcp_socket, message, strlen(message), 0) != strlen(message)) {
+        perror("inital TCP connection send error");
+    }
 
-            /*highest file descriptor number, need it for the select function*/
-            if(sd > max_sd)
-                max_sd = sd;
+    /*Bind the UDP socket to localhost and port with PID + 20000*/
+    if (bind(udp_socket, (struct sockaddr *) &udp_address, sizeof(udp_address)) < 0) {
+        perror("UDP bind failed");
+        exit(EXIT_FAILURE);
+    }
+    printf("UDgetP Bind Successful on port %d \n", ntohs(udp_address.sin_port));
+    fflush(stdout);
+
+    /* Initialize the set of active sockets. */
+    FD_ZERO (&active_fd_set);
+    FD_SET (new_tcp_socket, &active_fd_set);
+    FD_SET(udp_socket, &active_fd_set);
+
+    while(TRUE) {
+        /* Block until input arrives on one or more active sockets. */
+        read_fd_set = active_fd_set;
+        if (select (FD_SETSIZE, &read_fd_set, NULL, NULL, NULL) < 0) {
+            perror ("select");
+            exit (EXIT_FAILURE);
         }
 
-        /*wait for an activity on one of the sockets , timeout is NULL ,
-        so wait indefinitely*/
-        activity = select( max_sd + 1 , &readfds , NULL , NULL , NULL);
-
-        if ((activity < 0) && (errno!=EINTR))
-        {
-            printf("select error");
-        }
-
-        /*If something happened on the master socket ,
-        then its an incoming connection*/
-        if (FD_ISSET(master_socket, &readfds))
-        {
-            if ((new_socket = accept(master_socket,
-                                     (struct sockaddr *)&address, (socklen_t*)&addrlen))<0)
-            {
-                perror("accept");
-                exit(EXIT_FAILURE);
-            }
-
-            printf("This is the port in int: %d\n", ntohs(address.sin_port));
-            fflush(stdout);
-
-            /*inform user of socket number - used in send and receive commands*/
-            printf("New connection , socket fd is %d , ip is : %s , port : %d\n" , new_socket , inet_ntoa(address.sin_addr) , ntohs
-                    (address.sin_port));
-
-            /*send new connection greeting message_t*/
-            if( send(new_socket, message, strlen(message), 0) != strlen(message) )
-            {
-                perror("send");
-            }
-
-            puts("Welcome message_t sent successfully");
-
-            /*add new socket to array of sockets*/
-            for (i = 0; i < max_clients; i++)
-            {
-                /*if position is empty*/
-                if( client_socket[i] == 0 )
-                {
-                    client_socket[i] = new_socket;
-                    printf("Adding to list of sockets as %d\n" , i);
-
-                    break;
-                }
-            }
-        }
-
-        /*else its some IO operation on some other socket*/
-        for (i = 0; i < max_clients; i++)
-        {
-            sd = client_socket[i];
-
-            if (FD_ISSET( sd , &readfds))
-            {
-                /*Check if it was for closing , and also read the
-                incoming message_t*/
-                if ((valread = read( sd , buffer, 1024)) == 0)
-                {
-                    /*Somebody disconnected , get his details and print*/
-                    getpeername(sd , (struct sockaddr*)&address , \
-                        (socklen_t*)&addrlen);
-                    printf("Host disconnected , ip %s , port %d \n" ,
-                           inet_ntoa(address.sin_addr) , ntohs(address.sin_port));
-
-                    /*Close the socket and mark as 0 in list for reuse*/
-                    close( sd );
-                    client_socket[i] = 0;
-                }
-
-                    /*Echo back the message_t that came in*/
-                else
-                {
-                    /*set the string terminating NULL byte on the end
-                    of the data read*/
-                    buffer[valread] = '\0';
-
-                    /*Get incoming message_t.*/
-                    memcpy(incoming_message, buffer, valread+1);
-                    printf("Message from client: %s\n", incoming_message);
-
-                    /*parse the message_t*/
-                    cmd_type = parse_input(incoming_message, cmd_buf);
-
-                    printf("command Type: %d\n", cmd_type);
-
-
-                    if (cmd_type == GET){
-                        send_log(msg_log, num_msgs, chat_log_out);
-                        printf("this is the correct version!\n");
-                        send(sd , chat_log_out , strlen(chat_log_out) , 0 );
-                    }
-
+        /* Service all the sockets with input pending. */
+        for (i = 0; i < FD_SETSIZE; ++i) {
+            if (FD_ISSET (i, &read_fd_set)) {
+                if ( i == new_tcp_socket){
+                    /* This is where we write stuff about proxy to server */
+                    printf("OMG GOT A TCP THAAAAANG\n");
+                    fflush(stdout);
+                } else {
+                    /* This is where we write stuff about proxy to server */
+                    printf("DAMN WE GOT A DIF THANG\n");
+                    fflush(stdout);
                 }
             }
         }
     }
-
-    return 0;
 }
-

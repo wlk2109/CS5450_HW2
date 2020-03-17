@@ -7,8 +7,8 @@ AR              = ar
 CFLAGS          = -Wall -ansi -D_GNU_SOURCE 
 LFLAGS          = -Wall -ansi
 
-PROCESSOBJS		= p2pApp.o process_new.o
-ALLEXEC			= process_new
+PROCESSOBJS		= p2pApp.o process.o
+ALLEXEC			= process
 
 .c.o:
 	$(CC) $(CFLAGS) -c $<
@@ -19,7 +19,7 @@ process: $(PROCESSOBJS)
 	$(LD) $(LFLAGS) -o $@ $(PROCESSOBJS)
 
 clean:
-	rm -f *.o $(ALLEXEC) process
+	rm -f *.o $(ALLEXEC) process_new
 
 realclean: clean
 	rm -rf proj1.tar.gz
