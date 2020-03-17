@@ -19,7 +19,7 @@ process: $(PROCESSOBJS)
 	$(LD) $(LFLAGS) -o $@ $(PROCESSOBJS)
 
 clean:
-	rm -f *.o $(ALLEXEC)
+	rm -f *.o $(ALLEXEC) process
 
 realclean: clean
 	rm -rf proj1.tar.gz

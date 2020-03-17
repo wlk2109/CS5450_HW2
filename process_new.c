@@ -17,12 +17,16 @@ int main(int argc , char *argv[])
     fd_set active_fd_set;
     fd_set read_fd_set;
 
+    printf("In Process New\n");
+    fflush(stdout);
+
     /*Create a TCP socket*/
     if ((tcp_socket = socket(AF_INET, SOCK_STREAM, 0)) == 0) {
         perror("TCP Socket failed");
         exit(EXIT_FAILURE);
     }
-    printf("TCP Socket Made");
+    printf("TCP Socket Made\n");
+    fflush(stdout);
 
     /*Create a UDP socket*/
     if ((udp_socket = socket(AF_INET, SOCK_DGRAM, 0)) == 0) {
@@ -49,17 +53,20 @@ int main(int argc , char *argv[])
         perror("TCP bind failed");
         exit(EXIT_FAILURE);
     }
-    printf("TCP Bind Successful");
+    printf("TCP Bind Successful\n");
+    fflush(stdout);
 
     /*try to specify maximum of 3 pending connections for the master socket*/
     if (listen(tcp_socket, 3) < 0) {
         perror("listen error");
         exit(EXIT_FAILURE);
     }
-    printf("TCP Listen");
+    printf("TCP Listen\n");
+    fflush(stdout);
 
     if ((new_tcp_socket = accept(tcp_socket, (struct sockaddr *) &tcp_address, (socklen_t *) &tcp_addr_len)) < 0) {
         perror("accept");
+        fflush(stderr);
         exit(EXIT_FAILURE);
     }
 
@@ -98,9 +105,11 @@ int main(int argc , char *argv[])
         for (int i = 0; i < FD_SETSIZE; ++i) {
             if (FD_ISSET (i, &read_fd_set)) {
                 if ( i == new_tcp_socket){
-                    printf("OMG GOT A TCP THAAAAANG");
+                    printf("OMG GOT A TCP THAAAAANG\n");
+                    fflush(stdout);
                 } else {
-                    printf("DAMN WE GOT A DIF THANG");
+                    printf("DAMN WE GOT A DIF THANG\n");
+                    fflush(stdout);
                 }
             }
         }
