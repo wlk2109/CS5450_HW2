@@ -92,7 +92,8 @@ void process_cmd(client_command *client_cmd, char **msg_log, uint16_t *vector_cl
  * Crash the server.
  * Run a local kill process command.
  */
-void crash(){
+int crash(){
+    return (0);
 }
 
 /*
@@ -104,7 +105,6 @@ void exit(){}
  * Put message_t in message_t log.
  * Iterate the damn clock.
  * Send messages to neighbors.
- *
  */
 void send_msg(){
 }
@@ -135,6 +135,7 @@ void send_log(char **msg_log, size_t num_msg, char *chat_log){
  *
  */
 size_t update_log(message_t *msg, char **msg_log, size_t num_msg, uint16_t **msg_ids, uint16_t *vector_clock, int num_procs){
+
     /* Check Vector clock to see if the message_t is present */
     int expected_seq_num = vector_clock[msg->origin];
 
@@ -191,6 +192,8 @@ size_t update_log(message_t *msg, char **msg_log, size_t num_msg, uint16_t **msg
     return num_msg;
 }
 
+
+
 /* Returns index of specified message_t, or -1 if not in msg log*/
 int search_for_message(int **msg_ids, size_t num_msg, uint16_t tar_server, uint16_t tar_seqnum){
     int i;
@@ -200,6 +203,33 @@ int search_for_message(int **msg_ids, size_t num_msg, uint16_t tar_server, uint1
         }
     }
     return -1;
+}
+/** receives a status message.
+ *  gets the vector clock.
+ *  return: -1 if server needs to get messages, 0 if nothing to do, 1 if server needs to send message.
+ * */
+int read_status_message(int *msg_to_send, message_t *msg, uint16_t *vector_clock, int num_procs){
+    int need_msgs = FALSE;
+    int j;
+    uint16_t rcvd_status[num_procs];
+    memcpy(msg->vector_clock, rcvd_status, sizeof(vector_clock[0])*num_procs);
+    for(j = 0; j<num_procs; j++){
+        /* Check each peer's seqnum to determine if the status sender needs messages*/
+        if (vector_clock[j]  > rcvd_status[j]){
+            /* If servere has a higher number, sender needs message.
+             * Make msg to send first unread message and return immediately. */
+            memcpy(msg_to_send[0],j, sizeof(int));
+            return 1;
+        }
+        else if (vector_clock[j]  < rcvd_status[j]) {
+            /* Sender has messages to propagate to server.*/
+            need_msgs = TRUE;
+        }
+    }
+    if (need_msgs == TRUE){
+        return -1;
+    }
+    return 0;
 }
 
 /**
@@ -245,13 +275,21 @@ void update_vector_clock(uint16_t * vector_clock, uint16_t **msg_ids, size_t num
  * Fill the empty message_t (msg_buff) with the information provided by the parameters.
  * This will make a message_t ready to send.
  */
-void fill_message(message_t *msg_buff, enum message_type type, uint16_t server_pid,
+void fill_message(message_t *msg_buff, enum message_type type, uint16_t server_pid,uint16_t origin_pid,
                   uint16_t seqnum, uint16_t *vector_clock, char *msg, int num_procs){
     msg_buff->seqnum = seqnum;
-    msg_buff->origin = server_pid;
+    msg_buff->type = type;
+    msg_buff->origin = origin_pid;
     msg_buff->message_len = strlen(msg);
-    memcpy(msg_buff->vector_clock, vector_clock, sizeof(*vector_clock)*num_procs);
-    strcpy(msg_buff->msg, msg);
+    msg_buff->from = server_pid;
+    memcpy(msg_buff->vector_clock, vector_clock, sizeof(vector_clock[0])*num_procs);
+
+    if (type == STATUS){
+        memset(msg_buff->msg, 0, MAX_MSG_LEN);
+    }
+    else{
+        strcpy(msg_buff->msg, msg);
+    }
 
     printf("Filled Message:\n");
     print_message(msg_buff, num_procs);

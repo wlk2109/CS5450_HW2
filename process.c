@@ -13,7 +13,7 @@ int main(int argc , char *argv[])
      *     cmd_buf
      *     peer_msg_buf;
      */
-
+    srand(time(0));
     int pid = atoi(argv[1]);
     int num_procs = atoi(argv[2]);
     int tcp_port = atoi(argv[3]);
@@ -24,6 +24,7 @@ int main(int argc , char *argv[])
     struct sockaddr_in tcp_address;
     struct sockaddr_in udp_address;
     int tcp_socket, new_tcp_socket, udp_socket, i, cmd_type, num_neighbors, valread;
+    int active = TRUE;
     fd_set active_fd_set, read_fd_set;
 
     /** App Logic Variables*/
@@ -70,10 +71,12 @@ int main(int argc , char *argv[])
     strcpy(fake_cmd, "This is a test message my hombre");
      */
     /* test build message_t
-    fill_message(peer_msg_buf, RUMOR, pid, 1, vector_clock, fake_cmd, num_procs);
+    fill_message(peer_msg_buf, RUMOR, pid, pid,1, vector_clock, fake_cmd, num_procs);
 
     /* test update log
     update_log(peer_msg_buf, msg_log, num_msgs, msg_ids, vector_clock, num_procs);
+
+    TODO: Test read Status Message
     */
 
     /*** END TESTING ***/
@@ -155,6 +158,7 @@ int main(int argc , char *argv[])
     FD_SET (new_tcp_socket, &active_fd_set);
     FD_SET(udp_socket, &active_fd_set);
 
+
     /* Get P2P Ports to send on*/
     num_neighbors = init_neighbors(pid, num_procs, potential_neighbors);
     printf("Process %d has %d neighbors\n",pid,num_neighbors);
@@ -163,7 +167,8 @@ int main(int argc , char *argv[])
     int neighbor_ports[num_neighbors];
     get_neighbor_ports(pid, num_procs, neighbor_ports);
 
-    while(TRUE) {
+    while(active == TRUE) {
+
         /* Block until input arrives on one or more active sockets. */
         read_fd_set = active_fd_set;
 
@@ -231,4 +236,15 @@ int main(int argc , char *argv[])
             }
         }
     }
+    /* Exit or Crash.
+     * Free Memory and exit.
+     */
+    free(cmd_buf);
+    free(peer_msg_buf);
+    for (i =0; i<num_msgs; i++){
+        free(msg_log[i]);
+        free(msg_ids[i]);
+    }
+    free(msg_log);
+    free(msg_ids);
 }

@@ -22,7 +22,9 @@
 #define TRUE 	 1
 #define FALSE 	 0
 #define ROOT_ID 20000
-/*#define PORT 1738*/
+#define RAND_MAX 2
+#define HEADS 1
+#define TAILS 0
 
 /*----- Message Types -----*/
 enum message_type {
@@ -57,7 +59,7 @@ typedef struct client_command{
 /*--- Functions ---*/
 int parse_input(char *cmd_string, struct client_command *client_cmd);
 void process_cmd(struct client_command *client_cmd, char **msg_log, uint16_t *vector_clock);
-void crash();
+int crash();
 void exit();
 void send_msg();
 void send_log(char **msg_log, size_t num_msg, char *chat_log);
@@ -68,8 +70,8 @@ void update_vector_clock(uint16_t * vector_clock, uint16_t **msg_ids, size_t num
         uint16_t new_msg_server, int num_procs);
 void print_vector_clock(uint16_t *vector_clock, int num_procs);
 void print_message(message_t *msg, int num_procs);
-void fill_message(message_t *msg_buff, enum message_type type, uint16_t server_pid,
-                  uint16_t seqnum, uint16_t *vector_clock, char *msg, int num_procs);
+void fill_message(message_t *msg_buff, enum message_type type, uint16_t server_pid,uint16_t origin_pid,
+                  uint16_t seqnum, uint16_t *vector_clock, char *msg, int num_procs)
 int init_neighbors(int pid, int num_procs, int *potential);
 void get_neighbor_ports(int pid, int num_procs, int neighbor_ports[]);
 
