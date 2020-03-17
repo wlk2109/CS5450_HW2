@@ -7,8 +7,8 @@ AR              = ar
 CFLAGS          = -Wall -ansi -D_GNU_SOURCE 
 LFLAGS          = -Wall -ansi
 
-PROCESSOBJS		= p2pApp.o process.o
-ALLEXEC			= process
+PROCESSOBJS		= p2pApp.o process_new.o
+ALLEXEC			= process_new
 
 .c.o:
 	$(CC) $(CFLAGS) -c $<
