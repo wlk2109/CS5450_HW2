@@ -58,11 +58,27 @@ int init_neighbors(int pid, int num_procs, int *potential){
         potential[0]=TRUE;
         num_neighbors++;
     }
-    if (pid < num_procs-1){
+    if (pid < num_procs - 1){
         potential[1] = TRUE;
         num_neighbors++;
     }
     return num_neighbors;
+}
+
+void get_neighbor_ports(int pid, int num_procs, int neighbor_ports[]) {
+    if (pid == 0) {
+        neighbor_ports[0] = 20000 + pid+1;
+        return;
+    }
+    if (pid == num_procs-1) {
+        neighbor_ports[0] = 20000 + pid-1;
+        return;
+    }
+    else {
+        neighbor_ports[0] = 20000 + pid-1;
+        neighbor_ports[1] = 20000 + pid+1;
+        return;
+    }
 }
 
 /*

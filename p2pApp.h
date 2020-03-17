@@ -71,5 +71,6 @@ void print_message(message_t *msg, int num_procs);
 void fill_message(message_t *msg_buff, enum message_type type, uint16_t server_pid,
                   uint16_t seqnum, uint16_t *vector_clock, char *msg, int num_procs);
 int init_neighbors(int pid, int num_procs, int *potential);
+void get_neighbor_ports(int pid, int num_procs, int neighbor_ports[]);
 
 #endif

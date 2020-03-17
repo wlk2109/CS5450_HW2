@@ -18,14 +18,14 @@ int main(int argc , char *argv[])
     int num_procs = atoi(argv[2]);
     int tcp_port = atoi(argv[3]);
     int udp_port = ROOT_ID + pid;
+
     /** Server variables */
     struct sockaddr_in client_address;
     struct sockaddr_in tcp_address;
     struct sockaddr_in udp_address;
-    int tcp_socket, new_tcp_socket, udp_socket, i, cmd_type,
-        low_neighbor, high_neighbor, num_neighbors, valread;
-    int opt = TRUE;
+    int tcp_socket, new_tcp_socket, udp_socket, i, cmd_type, num_neighbors, valread;
     fd_set active_fd_set, read_fd_set;
+
     /** App Logic Variables*/
     /* Vector clock. with n entries
      * if vector_clock[i] == x:
@@ -37,6 +37,7 @@ int main(int argc , char *argv[])
     size_t num_msgs = 0;
     char chat_log_out[(MAX_MSG_LEN+1)*MAX_MSGS];
     char buffer[1025];  /*data buffer of 1K*/
+
     /** Allocated variables */
     char **msg_log = (char**) malloc(MAX_MSGS*sizeof(char *));
     /* msg_ids holds the message_t identifier as an int array
@@ -51,13 +52,6 @@ int main(int argc , char *argv[])
     for (i=0; i<num_procs; i++){
         vector_clock[i] = (uint16_t) 1;
     }
-
-    /** P2P sending stuff*/
-    num_neighbors = init_neighbors(pid, num_procs, potential_neighbors);
-    printf("Process %d has %d neighbors. Low Neighbor: %d, high neighbor: %d\n"
-            ,pid,num_neighbors,potential_neighbors[pid-1], potential_neighbors[pid+1]);
-
-    struct sockaddr_in neighbor_addresses[num_neighbors];
 
     /*** TESTING ***/
     char fake_cmd[250];
@@ -112,32 +106,6 @@ int main(int argc , char *argv[])
     udp_address.sin_addr.s_addr = htonl(INADDR_ANY);
     udp_address.sin_port = htons(udp_port);
 
-    int count = 0;
-
-    for(i=0;i<2;i++){
-        if (potential_neighbors[i] != TRUE){
-            continue;
-        }
-
-        struct sockaddr_in neighbor_address = neighbor_addresses[count];
-        memset(&neighbor_address, 0, sizeof(struct sockaddr_in));
-        neighbor_address.sin_family = AF_INET;
-        neighbor_address.sin_addr.s_addr = htonl(INADDR_ANY);
-
-        if (i == 0){
-            neighbor_address.sin_port = htons(udp_port-1);
-            count++;
-            if (count == num_neighbors){
-                /*For one neighbor that is low, we need to stop here.*/
-                break;
-            }
-        }
-        else{
-            neighbor_address.sin_port = htons(udp_port+1);
-            count++;
-        }
-    }
-
     int tcp_addr_len = sizeof(tcp_address);
 
     /*Bind the TCP socket to localhost port specified in start command*/
@@ -187,6 +155,14 @@ int main(int argc , char *argv[])
     FD_SET (new_tcp_socket, &active_fd_set);
     FD_SET(udp_socket, &active_fd_set);
 
+    /* Get P2P Ports to send on*/
+    num_neighbors = init_neighbors(pid, num_procs, potential_neighbors);
+    printf("Process %d has %d neighbors\n",pid,num_neighbors);
+    fflush(stdout);
+
+    int neighbor_ports[num_neighbors];
+    get_neighbor_ports(pid, num_procs, neighbor_ports);
+
     while(TRUE) {
         /* Block until input arrives on one or more active sockets. */
         read_fd_set = active_fd_set;
@@ -213,8 +189,7 @@ int main(int argc , char *argv[])
                         printf("Host disconnected , ip %s , port %d \n" , inet_ntoa(client_address.sin_addr) , ntohs(client_address.sin_port));
                         close( new_tcp_socket );
                     }
-
-                        /*Echo back the message_t that came in*/
+                    /*Echo back the message_t that came in*/
                     else {
                         buffer[valread] = '\0';
                         send(new_tcp_socket , buffer , strlen(buffer) , 0 );
@@ -222,14 +197,16 @@ int main(int argc , char *argv[])
                     /* Send new message to nearby server */
                     //TODO: Make all the below stuff into a function under gossip stuff
                     char *test_msg = "This message should be sent over UDP";
-                    struct sockaddr_in test_serv_addr;
-                    test_serv_addr.sin_family = AF_INET;
-                    test_serv_addr.sin_addr.s_addr = INADDR_ANY;
-                    int test_serv_port = get_open_neighbors(pid);
-                    test_serv_addr.sin_port =htons(test_serv_port);
+                    struct sockaddr_in peer_serv_addr;
+                    peer_serv_addr.sin_family = AF_INET;
+                    peer_serv_addr.sin_addr.s_addr = INADDR_ANY;
 
-                    sendto(udp_socket, (const char *)test_msg, strlen(test_msg), MSG_DONTWAIT, (const struct sockaddr *) &test_serv_addr, sizeof(test_serv_addr));
-                    printf("Test message sent on UDP.\n");
+                    for(i=0; i < num_neighbors; i++) {
+                        peer_serv_addr.sin_port =htons(neighbor_ports[i]);
+                        printf("Sending from UDP port: %d to port: %d\n ", udp_port, ntohs(peer_serv_addr.sin_port));
+                        sendto(udp_socket, (const char *)test_msg, strlen(test_msg), MSG_DONTWAIT, (const struct sockaddr *) &peer_serv_addr, sizeof(peer_serv_addr));
+                        printf("Test message sent on UDP.\n");
+                    }
 
                     /* SERVER -- SERVER UDP CONNECTION I/O */
                 } else {
@@ -253,15 +230,5 @@ int main(int argc , char *argv[])
                 }
             }
         }
-    }
-}
-
-int get_open_neighbors(int pid) {
-    //TODO: Write proper logic here to find nearby neighbours
-    //For now just writing test code
-    if (pid == 1) {
-        return 20002;
-    } else {
-        return 20001;
     }
 }
