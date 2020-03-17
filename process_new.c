@@ -8,9 +8,11 @@ int main(int argc , char *argv[])
     int tcp_port = atoi(argv[3]);
     int udp_port = 20011 + pid;
 
+    struct sockaddr_in client_address;
     struct sockaddr_in tcp_address;
     struct sockaddr_in udp_address;
     int tcp_socket, new_tcp_socket, udp_socket, i;
+    int opt = TRUE;
 
     fd_set active_fd_set;
     fd_set read_fd_set;
@@ -19,7 +21,7 @@ int main(int argc , char *argv[])
     fflush(stdout);
 
     /*Create a TCP socket*/
-    if ((tcp_socket = socket(AF_INET, SOCK_STREAM, 0)) == 0) {
+    if ((tcp_socket = socket(AF_INET, SOCK_STREAM, 0)) < 0) {
         perror("TCP Socket failed");
         exit(EXIT_FAILURE);
     }
@@ -27,10 +29,20 @@ int main(int argc , char *argv[])
     fflush(stdout);
 
     /*Create a UDP socket*/
-    if ((udp_socket = socket(AF_INET, SOCK_DGRAM, 0)) == 0) {
+    if ((udp_socket = socket(AF_INET, SOCK_DGRAM, 0)) < 0) {
         perror("UDP Socket failed");
         exit(EXIT_FAILURE);
     }
+
+    if((setsockopt(tcp_socket, SOL_SOCKET, SO_REUSEADDR, (char *)&opt, sizeof(opt))) < 0)
+    {
+        perror("Server-setsockopt() error");
+        close(tcp_socket);
+        exit (-1);
+    }
+    else
+        printf("Server-setsockopt() is OK\n");
+        fflush(stdout);
 
     /*Create TCP address */
     memset(&tcp_address, 0, sizeof(struct sockaddr_in));
@@ -59,10 +71,12 @@ int main(int argc , char *argv[])
         perror("listen error");
         exit(EXIT_FAILURE);
     }
+
     printf("TCP Listen\n");
+    printf("Listener on port %d \n", tcp_address.sin_port);
     fflush(stdout);
 
-    if ((new_tcp_socket = accept(tcp_socket, (struct sockaddr *) &tcp_address, (socklen_t *) &tcp_addr_len)) < 0) {
+    if ((new_tcp_socket = accept(tcp_socket, (struct sockaddr *) &client_address, (socklen_t *) &tcp_addr_len)) < 0) {
         perror("accept");
         fflush(stderr);
         exit(EXIT_FAILURE);

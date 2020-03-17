@@ -19,7 +19,6 @@ int parse_input(char *cmd_string, client_command *client_cmd){
      * get chatLog
      */
 
-
     if (strcmp(token, "msg")==0){
         printf("It's a message_t!\n");
         client_cmd ->cmd_type = MSG;
@@ -174,8 +173,9 @@ int search_for_message(int **msg_ids, size_t num_msg, uint16_t tar_server, uint1
 /**
  * Update the vector clock after receiving an incoming message_t.
  * Checks to see if message_t fills in any gaps.
- * Create a temp array for the given server
+ * Create a temp array for the given server.
  * and fill with zeros or ones depending on if the message_t is there.
+ *
  */
 void update_vector_clock(uint16_t * vector_clock, uint16_t **msg_ids, size_t num_msg,
         uint16_t new_msg_server, int num_procs){
@@ -202,7 +202,7 @@ void update_vector_clock(uint16_t * vector_clock, uint16_t **msg_ids, size_t num
         }
     }
 
-    vector_clock[new_msg_server] = i-1;
+    vector_clock[new_msg_server] = i;
 
     printf("New Vector Clock:\n");
     print_vector_clock(vector_clock, num_procs);
