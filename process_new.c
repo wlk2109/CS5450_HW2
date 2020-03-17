@@ -105,9 +105,11 @@ int main(int argc , char *argv[])
         for (int i = 0; i < FD_SETSIZE; ++i) {
             if (FD_ISSET (i, &read_fd_set)) {
                 if ( i == new_tcp_socket){
+                    /* This is where we write stuff about proxy to server */
                     printf("OMG GOT A TCP THAAAAANG\n");
                     fflush(stdout);
                 } else {
+                    /* This is where we write stuff about proxy to server */
                     printf("DAMN WE GOT A DIF THANG\n");
                     fflush(stdout);
                 }
