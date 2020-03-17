@@ -52,6 +52,19 @@ int parse_input(char *cmd_string, client_command *client_cmd){
     }
 }
 
+int init_neighbors(int pid, int num_procs, int *potential){
+    int num_neighbors = 0;
+    if (pid > 0){
+        potential[0]=TRUE;
+        num_neighbors++;
+    }
+    if (pid < num_procs-1){
+        potential[1] = TRUE;
+        num_neighbors++;
+    }
+    return num_neighbors;
+}
+
 /*
  * Process a command.
  * Based on command type, do the thing.

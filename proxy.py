@@ -124,7 +124,6 @@ def main():
         cmd = sp2[1] # second field is command
         if cmd == 'start':
             port = int(sp2[3])
-            print("Client Connecting to port {}".format(port))
             # sleep a while if a process is going to recover -- to avoid the
             # case that the process is started but the previous one hasn't
             # crashed.

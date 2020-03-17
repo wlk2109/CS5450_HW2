@@ -12,7 +12,8 @@ int main(int argc , char *argv[])
     struct sockaddr_in client_address;
     struct sockaddr_in tcp_address;
     struct sockaddr_in udp_address;
-    int tcp_socket, new_tcp_socket, udp_socket, i, cmd_type;
+    int tcp_socket, new_tcp_socket, udp_socket, i, cmd_type,
+        low_neighbor, high_neighbor, num_neighbors, valread;
     int opt = TRUE;
     fd_set active_fd_set, read_fd_set;
     /** App Logic Variables*/
@@ -20,6 +21,7 @@ int main(int argc , char *argv[])
      * if vector_clock[i] == x:
      * lowest message NOT SEEN from peer i is x
      * */
+    int potential_neighbors[2];
     uint16_t vector_clock[num_procs];
     char incoming_message[256];
     size_t num_msgs = 0;
@@ -41,10 +43,16 @@ int main(int argc , char *argv[])
     }
 
     /** P2P sending stuff*/
+    num_neighbors = init_neighbors(pid, num_procs, potential_neighbors);
+    printf("Process %d has %d neighbors. Low Neighbor: %d, high neighbor: %d\n"
+            ,pid,num_neighbors,potential_neighbors[0], potential_neighbors[1]);
+
+    struct sockaddr_in neighbor_addresses[num_neighbors];
 
     /*** TESTING ***/
     char fake_cmd[250];
-    /*testing parse_input
+    /*
+     * testing parse_input
 
     strcpy(fake_cmd, "msg 12 chatLog for me and you");
 
@@ -54,14 +62,15 @@ int main(int argc , char *argv[])
     if (cmd_type == MSG){
         printf("Message ID: %d, Message: %s\n\n",cmd_buf->msg_id, cmd_buf->msg);
     }
-    */
 
     strcpy(fake_cmd, "This is a test message my hombre");
-    /* test build message_t */
+     */
+    /* test build message_t
     fill_message(peer_msg_buf, RUMOR, pid, 1, vector_clock, fake_cmd, num_procs);
 
-    /* test update log*/
+    /* test update log
     update_log(peer_msg_buf, msg_log, num_msgs, msg_ids, vector_clock, num_procs);
+    */
 
     /*** END TESTING ***/
 

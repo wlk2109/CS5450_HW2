@@ -70,5 +70,6 @@ void print_vector_clock(uint16_t *vector_clock, int num_procs);
 void print_message(message_t *msg, int num_procs);
 void fill_message(message_t *msg_buff, enum message_type type, uint16_t server_pid,
                   uint16_t seqnum, uint16_t *vector_clock, char *msg, int num_procs);
+int init_neighbors(int pid, int num_procs, int *potential);
 
 #endif
