@@ -3,10 +3,12 @@
 
 int main(int argc , char *argv[])
 {
-    int pid = atoi(argv[2]);
+    int pid = atoi(argv[1]);
     int num_procs = atoi(argv[2]);
     int tcp_port = atoi(argv[3]);
     int udp_port = 20011 + pid;
+
+    printf("TCP Port %d \n", tcp_port);
 
     struct sockaddr_in client_address;
     struct sockaddr_in tcp_address;
@@ -50,6 +52,8 @@ int main(int argc , char *argv[])
     tcp_address.sin_addr.s_addr = htonl(INADDR_ANY);
     tcp_address.sin_port = htons(tcp_port);
 
+    printf("Server added port %d to struct\n", ntohs(tcp_address.sin_port));
+
     /*Create UDP address */
     memset(&tcp_address, 0, sizeof(struct sockaddr_in));
     udp_address.sin_family = AF_INET;
@@ -63,7 +67,7 @@ int main(int argc , char *argv[])
         perror("TCP bind failed");
         exit(EXIT_FAILURE);
     }
-    printf("TCP Bind Successful\n");
+    printf("TCP Bind Successful on port %d \n", tcp_address.sin_port);
     fflush(stdout);
 
     /*try to specify maximum of 3 pending connections for the master socket*/
