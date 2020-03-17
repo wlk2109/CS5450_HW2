@@ -18,6 +18,7 @@ int main(int argc , char *argv[])
     int num_procs = atoi(argv[2]);
     int tcp_port = atoi(argv[3]);
     int udp_port = ROOT_ID + pid;
+    int local_seqnum = 1; /* Next seqnum the server will send. */
 
     /** Server variables */
     struct sockaddr_in client_address;
@@ -180,7 +181,6 @@ int main(int argc , char *argv[])
         /* Service all the sockets with input pending. */
         for (i = 0; i < FD_SETSIZE; ++i) {
             if (FD_ISSET (i, &read_fd_set)) {
-
                 /* PROXY -- SERVER TCP CONNECTION I/O */
                 if ( i == new_tcp_socket) {
                     printf("Received a message on TCP\n");
@@ -194,24 +194,49 @@ int main(int argc , char *argv[])
                         printf("Host disconnected , ip %s , port %d \n" , inet_ntoa(client_address.sin_addr) , ntohs(client_address.sin_port));
                         close( new_tcp_socket );
                     }
-                    /*Echo back the message_t that came in*/
-                    else {
-                        buffer[valread] = '\0';
-                        send(new_tcp_socket , buffer , strlen(buffer) , 0 );
-                    }
-                    /* Send new message to nearby server */
-                    //TODO: Make all the below stuff into a function under gossip stuff
-                    char *test_msg = "This message should be sent over UDP";
-                    struct sockaddr_in peer_serv_addr;
-                    peer_serv_addr.sin_family = AF_INET;
-                    peer_serv_addr.sin_addr.s_addr = INADDR_ANY;
+                    buffer[valread] ='\0';
+                    strcpy(incoming_message, buffer);
 
-                    for(i=0; i < num_neighbors; i++) {
-                        peer_serv_addr.sin_port =htons(neighbor_ports[i]);
-                        printf("Sending from UDP port: %d to port: %d\n ", udp_port, ntohs(peer_serv_addr.sin_port));
-                        sendto(udp_socket, (const char *)test_msg, strlen(test_msg), MSG_DONTWAIT, (const struct sockaddr *) &peer_serv_addr, sizeof(peer_serv_addr));
+
+                    /* Process the client command */
+                    if ((cmd_type = parse_input(incoming_message, cmd_buf)) == -1){
+                        perror("weird command");
+                        exit (EXIT_FAILURE);
+                    }
+
+                    if (cmd_type == CRASH){
+                        active = FALSE;
+                        break;
+                    }
+                    else if(cmd_type == GET){
+                        /* prepare chatlog to send. */
+                        send_log(msg_log, num_msgs, chat_log_out);
+                        send(new_tcp_socket , chat_log_out , strlen(chat_log_out) , 0 );
+                    }
+                    else if(cmd_type == MSG){
+                        /* New Message from client! */
+                        /* Always new */
+                        fill_message(peer_msg_buf, RUMOR, pid, pid, local_seqnum, vector_clock, cmd_buf->msg ,num_procs);
+                        num_msgs += update_log(peer_msg_buf, msg_log, num_msgs, msg_ids, vector_clock, num_procs);
+
+                        /* Send new message to nearby server */
+                        struct sockaddr_in peer_serv_addr;
+                        peer_serv_addr.sin_family = AF_INET;
+                        peer_serv_addr.sin_addr.s_addr = INADDR_ANY;
+
+                        i = pick_neighbor(num_neighbors);
+
+                        printf("selected Neghbor number %d\n",i);
+                        peer_serv_addr.sin_port = htons(neighbor_ports[i]);
+
+                        printf("Sending Message from UDP port: %d to port: %d\n ", udp_port, ntohs(peer_serv_addr.sin_port));
+                        sendto(udp_socket, (const char *) incoming_message, sizeof(incoming_message), MSG_DONTWAIT,
+                               (const struct sockaddr *) &peer_serv_addr, sizeof(peer_serv_addr));
                         printf("Test message sent on UDP.\n");
                     }
+
+
+
 
                     /* SERVER -- SERVER UDP CONNECTION I/O */
                 } else {
@@ -236,7 +261,7 @@ int main(int argc , char *argv[])
             }
         }
     }
-    /* Exit or Crash.
+    /* Exit or Crash. Break the While Loop.
      * Free Memory and exit.
      */
     free(cmd_buf);

@@ -52,6 +52,13 @@ int parse_input(char *cmd_string, client_command *client_cmd){
     }
 }
 
+int pick_neighbor(int num_neighbors){
+    if (num_neighbors == 1){
+        return 0;
+    }
+    return rand();
+}
+
 int init_neighbors(int pid, int num_procs, int *potential){
     int num_neighbors = 0;
     if (pid > 0){
@@ -148,14 +155,14 @@ size_t update_log(message_t *msg, char **msg_log, size_t num_msg, uint16_t **msg
             /* Less than expected */
             /* Already have this message_t. Return*/
             printf("Low seq num, returning");
-            return num_msg;
+            return 0;
         }
         else{
             /* message_t is greater. */
             if(search_for_message(msg_ids, num_msg, msg->origin, msg->seqnum) >= 0){
                 /* Already have this message_t. Return*/
                 printf(" Duplicate high seq num, returning");
-                return num_msg;
+                return 0;
             }
         }
     }
@@ -181,15 +188,10 @@ size_t update_log(message_t *msg, char **msg_log, size_t num_msg, uint16_t **msg
     msg_log[num_msg] = msg_text;
     msg_ids[num_msg] = msg_id;
 
-    /*
-    printf("Copied message_t: %s. From: %d. seqnum: %d\n",msg_log[num_msg],msg_ids[num_msg][0], msg_ids[num_msg][1]);
-    */
-    num_msg++;
-
     /* update vector clock */
     update_vector_clock(vector_clock, msg_ids, num_msg, msg_id[0], num_procs);
 
-    return num_msg;
+    return 1;
 }
 
 
