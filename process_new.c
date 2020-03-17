@@ -10,9 +10,7 @@ int main(int argc , char *argv[])
 
     struct sockaddr_in tcp_address;
     struct sockaddr_in udp_address;
-    int tcp_socket;
-    int new_tcp_socket;
-    int udp_socket;
+    int tcp_socket, new_tcp_socket, udp_socket, i;
 
     fd_set active_fd_set;
     fd_set read_fd_set;
@@ -102,7 +100,7 @@ int main(int argc , char *argv[])
         }
 
         /* Service all the sockets with input pending. */
-        for (int i = 0; i < FD_SETSIZE; ++i) {
+        for (i = 0; i < FD_SETSIZE; ++i) {
             if (FD_ISSET (i, &read_fd_set)) {
                 if ( i == new_tcp_socket){
                     /* This is where we write stuff about proxy to server */
