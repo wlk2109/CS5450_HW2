@@ -4,6 +4,19 @@
 int main(int argc , char *argv[])
 {
 
+    /**
+     * TODO: FREE ALLOCATED MEMORY
+     *     char **msg_log
+     *     msg_log contents
+     *     uint16_t **msg_ids
+     *     msg_ids contents
+     *     cmd_buf
+     *     peer_msg_buf;
+     */
+    uint16_t **msg_ids = (uint16_t **) malloc(MAX_MSGS*sizeof(uint16_t *));
+    struct client_command *cmd_buf = malloc(sizeof(struct client_command));
+    struct message_t *peer_msg_buf = malloc(sizeof(message_t));
+     * */
     int pid = atoi(argv[1]);
     int num_procs = atoi(argv[2]);
     int tcp_port = atoi(argv[3]);
@@ -45,7 +58,7 @@ int main(int argc , char *argv[])
     /** P2P sending stuff*/
     num_neighbors = init_neighbors(pid, num_procs, potential_neighbors);
     printf("Process %d has %d neighbors. Low Neighbor: %d, high neighbor: %d\n"
-            ,pid,num_neighbors,potential_neighbors[0], potential_neighbors[1]);
+            ,pid,num_neighbors,potential_neighbors[pid-1], potential_neighbors[pid+1]);
 
     struct sockaddr_in neighbor_addresses[num_neighbors];
 
@@ -101,6 +114,31 @@ int main(int argc , char *argv[])
     udp_address.sin_family = AF_INET;
     udp_address.sin_addr.s_addr = htonl(INADDR_ANY);
     udp_address.sin_port = htons(udp_port);
+
+    int count = 0;
+    for(i=0;i<2;i++){
+        if (potential_neighbors[i] != TRUE){
+            continue;
+        }
+
+        neighbor_address = neighbor_addresses[count];
+        memset(&neighbor_address, 0, sizeof(struct sockaddr_in));
+        neighbor_address.sin_family = AF_INET;
+        neighbor_address.sin_addr.s_addr = htonl(INADDR_ANY);
+
+        if (i == 0){
+            neighbor_address.sin_port = htons(udp_port-1);
+            count++
+            if count == num_neighbors{
+                /*For one neighbor that is low, we need to stop here.*/
+                break;
+            }
+        }
+        else{
+            neighbor_address.sin_port = htons(udp_port+1);
+            count++
+        }
+    }
 
     int tcp_addr_len = sizeof(tcp_address);
 
