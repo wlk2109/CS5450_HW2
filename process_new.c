@@ -3,69 +3,22 @@
 
 int main(int argc , char *argv[])
 {
-
     int pid = atoi(argv[1]);
     int num_procs = atoi(argv[2]);
     int tcp_port = atoi(argv[3]);
-    int udp_port = ROOT_ID + pid;
-    /** Server variables */
+    int udp_port = 20000 + pid;
+
+
     struct sockaddr_in client_address;
     struct sockaddr_in tcp_address;
     struct sockaddr_in udp_address;
-    int tcp_socket, new_tcp_socket, udp_socket, i, cmd_type;
-    int opt = TRUE;
-    fd_set active_fd_set, read_fd_set;
-    /** App Logic Variables*/
-    /* Vector clock. with n entries
-     * if vector_clock[i] == x:
-     * lowest message NOT SEEN from peer i is x
-     * */
-    uint16_t vector_clock[num_procs];
-    char incoming_message[256];
-    size_t num_msgs = 0;
-    char chat_log_out[(MAX_MSG_LEN+1)*MAX_MSGS];
-    char buffer[1025];  /*data buffer of 1K*/
-    /** Allocated variables */
-    char **msg_log = (char**) malloc(MAX_MSGS*sizeof(char *));
-    /* msg_ids holds the message_t identifier as an int array
-    * in the format [<originalsender>,<seqno>]
-    * for example msg 15 from server 1: [1,15]
-     */
-    uint16_t **msg_ids = (uint16_t **) malloc(MAX_MSGS*sizeof(uint16_t *));
-    struct client_command *cmd_buf = malloc(sizeof(struct client_command));
-    struct message_t *peer_msg_buf = malloc(sizeof(message_t));
+    int tcp_socket, new_tcp_socket, udp_socket, valread, i;
+    char buffer[1025];
 
-    /* Init vector clock with 1's*/
-    for (i=0; i<num_procs; i++){
-        vector_clock[i] = (uint16_t) 1;
-    }
+    fd_set active_fd_set;
+    fd_set read_fd_set;
 
-    /** P2P sending stuff*/
-
-    /*** TESTING ***/
-    char fake_cmd[250];
-    /*testing parse_input
-
-    strcpy(fake_cmd, "msg 12 chatLog for me and you");
-
-    cmd_type = parse_input(fake_cmd, cmd_buf);
-
-    printf("The command message_t received is of type %d. \n",cmd_buf->cmd_type);
-    if (cmd_type == MSG){
-        printf("Message ID: %d, Message: %s\n\n",cmd_buf->msg_id, cmd_buf->msg);
-    }
-    */
-
-    strcpy(fake_cmd, "This is a test message my hombre");
-    /* test build message_t */
-    fill_message(peer_msg_buf, RUMOR, pid, 1, vector_clock, fake_cmd, num_procs);
-
-    /* test update log*/
-    update_log(peer_msg_buf, msg_log, num_msgs, msg_ids, vector_clock, num_procs);
-
-    /*** END TESTING ***/
-
-
+    fflush(stdout);
 
     /*Create a TCP socket*/
     if ((tcp_socket = socket(AF_INET, SOCK_STREAM, 0)) < 0) {
@@ -169,7 +122,7 @@ int main(int argc , char *argv[])
                         close( new_tcp_socket );
                     }
 
-                        /*Echo back the message_t that came in*/
+                    /*Echo back the message_t that came in*/
                     else {
                         buffer[valread] = '\0';
                         send(new_tcp_socket , buffer , strlen(buffer) , 0 );
@@ -186,7 +139,7 @@ int main(int argc , char *argv[])
                     sendto(udp_socket, (const char *)test_msg, strlen(test_msg), MSG_DONTWAIT, (const struct sockaddr *) &test_serv_addr, sizeof(test_serv_addr));
                     printf("Test message sent on UDP.\n");
 
-                    /* SERVER -- SERVER UDP CONNECTION I/O */
+                /* SERVER -- SERVER UDP CONNECTION I/O */
                 } else {
                     printf("Received a message on UDP\n");
                     fflush(stdout);
