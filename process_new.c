@@ -49,13 +49,13 @@ int main(int argc , char *argv[])
     /*Create TCP address */
     memset(&tcp_address, 0, sizeof(struct sockaddr_in));
     tcp_address.sin_family = AF_INET;
-    tcp_address.sin_addr.s_addr = htonl(INADDR_ANY);
+    tcp_address.sin_addr.s_addr = INADDR_ANY;
     tcp_address.sin_port = htons(tcp_port);
 
     printf("Server added port %d to struct\n", ntohs(tcp_address.sin_port));
 
     /*Create UDP address */
-    memset(&tcp_address, 0, sizeof(struct sockaddr_in));
+    memset(&udp_address, 0, sizeof(struct sockaddr_in));
     udp_address.sin_family = AF_INET;
     udp_address.sin_addr.s_addr = htonl(INADDR_ANY);
     udp_address.sin_port = htons(udp_port);
@@ -67,7 +67,7 @@ int main(int argc , char *argv[])
         perror("TCP bind failed");
         exit(EXIT_FAILURE);
     }
-    printf("TCP Bind Successful on port %d \n", tcp_address.sin_port);
+    printf("TCP Bind Successful on port %d \n", ntohs(tcp_address.sin_port));
     fflush(stdout);
 
     /*try to specify maximum of 3 pending connections for the master socket*/
@@ -77,7 +77,7 @@ int main(int argc , char *argv[])
     }
 
     printf("TCP Listen\n");
-    printf("Listener on port %d \n", tcp_address.sin_port);
+    printf("Listener on port %d \n", ntohs(tcp_address.sin_port));
     fflush(stdout);
 
     if ((new_tcp_socket = accept(tcp_socket, (struct sockaddr *) &client_address, (socklen_t *) &tcp_addr_len)) < 0) {
