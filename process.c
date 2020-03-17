@@ -13,10 +13,7 @@ int main(int argc , char *argv[])
      *     cmd_buf
      *     peer_msg_buf;
      */
-    uint16_t **msg_ids = (uint16_t **) malloc(MAX_MSGS*sizeof(uint16_t *));
-    struct client_command *cmd_buf = malloc(sizeof(struct client_command));
-    struct message_t *peer_msg_buf = malloc(sizeof(message_t));
-     * */
+
     int pid = atoi(argv[1]);
     int num_procs = atoi(argv[2]);
     int tcp_port = atoi(argv[3]);
@@ -116,27 +113,28 @@ int main(int argc , char *argv[])
     udp_address.sin_port = htons(udp_port);
 
     int count = 0;
+
     for(i=0;i<2;i++){
         if (potential_neighbors[i] != TRUE){
             continue;
         }
 
-        neighbor_address = neighbor_addresses[count];
+        struct sockaddr_in neighbor_address = neighbor_addresses[count];
         memset(&neighbor_address, 0, sizeof(struct sockaddr_in));
         neighbor_address.sin_family = AF_INET;
         neighbor_address.sin_addr.s_addr = htonl(INADDR_ANY);
 
         if (i == 0){
             neighbor_address.sin_port = htons(udp_port-1);
-            count++
-            if count == num_neighbors{
+            count++;
+            if (count == num_neighbors){
                 /*For one neighbor that is low, we need to stop here.*/
                 break;
             }
         }
         else{
             neighbor_address.sin_port = htons(udp_port+1);
-            count++
+            count++;
         }
     }
 
