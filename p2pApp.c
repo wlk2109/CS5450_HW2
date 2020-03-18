@@ -144,6 +144,7 @@ void send_log(char **msg_log, size_t num_msg, char *chat_log){
         }
         strcat(chat_log, curr_msg);
     }
+    strcat(chat_log, "\n");
 }
 
 /**
