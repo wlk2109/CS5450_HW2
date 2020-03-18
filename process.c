@@ -57,19 +57,19 @@ int main(int argc , char *argv[])
     }
 
     /*** TESTING ***/
-    char fake_cmd[250];
-    strcpy(fake_cmd, "chatlog in yo ass");
-    num_msgs += add_new_message(fake_cmd, pid, local_seqnum, msg_log,
-                                num_msgs, msg_ids, vector_clock, num_procs);
-    local_seqnum++;
-    num_msgs += add_new_message(fake_cmd, pid, local_seqnum, msg_log,
-                                num_msgs, msg_ids, vector_clock, num_procs);
-    local_seqnum++;
-    num_msgs += add_new_message(fake_cmd, pid, local_seqnum, msg_log,
-                                num_msgs, msg_ids, vector_clock, num_procs);
-    local_seqnum++;
-    send_log(msg_log, num_msgs, chat_log_out);
-    printf("Filled Chatlog: %s\n", chat_log_out);
+//    char fake_cmd[250];
+//    strcpy(fake_cmd, "chatlog in yo ass");
+//    num_msgs += add_new_message(fake_cmd, pid, local_seqnum, msg_log,
+//                                num_msgs, msg_ids, vector_clock, num_procs);
+//    local_seqnum++;
+//    num_msgs += add_new_message(fake_cmd, pid, local_seqnum, msg_log,
+//                                num_msgs, msg_ids, vector_clock, num_procs);
+//    local_seqnum++;
+//    num_msgs += add_new_message(fake_cmd, pid, local_seqnum, msg_log,
+//                                num_msgs, msg_ids, vector_clock, num_procs);
+//    local_seqnum++;
+//    send_log(msg_log, num_msgs, chat_log_out);
+//    printf("Filled Chatlog: %s\n", chat_log_out);
 
     /*
      * testing parse_input
@@ -100,7 +100,7 @@ int main(int argc , char *argv[])
 
     /*Create a TCP socket*/
     if ((tcp_socket = socket(AF_INET, SOCK_STREAM, 0)) < 0) {
-        perror("TCP Socket failed");
+        printf("TCP Socket failed");
         exit(EXIT_FAILURE);
     }
     printf("TCP Socket Made\n");
