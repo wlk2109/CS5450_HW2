@@ -24,7 +24,7 @@ int main(int argc , char *argv[])
     struct sockaddr_in client_address;
     struct sockaddr_in tcp_address;
     struct sockaddr_in udp_address;
-    int tcp_socket, new_tcp_socket, udp_socket, i, cmd_type, num_neighbors, valread;
+    int tcp_socket, new_tcp_socket, udp_socket, i,j, cmd_type, num_neighbors, valread;
     int active = TRUE;
     fd_set active_fd_set, read_fd_set;
 
@@ -60,7 +60,7 @@ int main(int argc , char *argv[])
     /*** TESTING ***/
     if (pid == 0) {
         char fake_cmd[250];
-        strcpy(fake_cmd, "chatlog in yo ass");
+        strcpy(fake_cmd, "ShartlogInYoAss");
         num_msgs += add_new_message(fake_cmd, pid, local_seqnum, msg_log,
                                     num_msgs, msg_ids, vector_clock, num_procs);
         local_seqnum++;
@@ -152,6 +152,13 @@ int main(int argc , char *argv[])
         exit(EXIT_FAILURE);
     }
 
+    int status = fcntl(new_tcp_socket, F_SETFL, fcntl(new_tcp_socket, F_GETFL, 0) | O_NONBLOCK);
+
+    if (status == -1){
+        perror("calling fcntl");
+        // handle the error.  By the way, I've never seen fcntl fail in this way
+    }
+
     /*inform user of socket number - used in send and receive commands*/
     printf("New connection , socket fd is %d , ip is : %s , port : %d\n", new_tcp_socket,
            inet_ntoa(tcp_address.sin_addr), ntohs(tcp_address.sin_port));
@@ -173,11 +180,6 @@ int main(int argc , char *argv[])
     }
     printf("Server %d , UDP socket on port: %d\n", pid, ntohs(udp_address.sin_port));
 
-//    /* Initialize the set of active sockets. */
-//    FD_ZERO (&active_fd_set);
-//    FD_SET (new_tcp_socket, &active_fd_set);
-//    FD_SET(udp_socket, &active_fd_set);
-
 
     /* Get P2P Ports to send on*/
     num_neighbors = init_neighbors(pid, num_procs, potential_neighbors);
@@ -187,8 +189,22 @@ int main(int argc , char *argv[])
     int neighbor_ports[num_neighbors];
     get_neighbor_ports(pid, num_procs, neighbor_ports);
 
+//    /* Initialize the set of active sockets. */
+//    FD_ZERO (&active_fd_set);
+//    FD_SET (new_tcp_socket, &active_fd_set);
+//    FD_SET(udp_socket, &active_fd_set);
+
+    printf("SERVER STARTED AND WAITING!\n\n");
+
     while(active == TRUE) {
+        if (num_msgs > MAX_MSGS){
+            printf("Max Messages reached. Quitting\n");
+            break;
+        }
         printf("Top of While Loop\n\n");
+
+        /* Block until input arrives on one or more active sockets. */
+        //read_fd_set = active_fd_set;
 
         /* Initialize the set of active sockets. */
         FD_ZERO (&active_fd_set);
@@ -196,19 +212,17 @@ int main(int argc , char *argv[])
         FD_SET(udp_socket, &active_fd_set);
 
 
-        /* Block until input arrives on one or more active sockets. */
-        read_fd_set = active_fd_set;
-
-        if (select (FD_SETSIZE, &read_fd_set, NULL, NULL, NULL) < 0) {
+        if (select (FD_SETSIZE, &active_fd_set, NULL, NULL, NULL) < 0) {
             perror ("select");
             exit (EXIT_FAILURE);
         }
 
+
         /* Service all the sockets with input pending. */
         for (i = 0; i < FD_SETSIZE; ++i) {
-            printf("Top of For Loop, i = %d\n\n", i);
+//            printf("Top of For Loop, i = %d\n\n", i);
 
-            if (FD_ISSET (i, &read_fd_set)) {
+            if (FD_ISSET (i, &active_fd_set)) {
                 /* PROXY -- SERVER TCP CONNECTION I/O */
                 if ( i == new_tcp_socket) {
                     printf("Server %d Received a message on TCP\n", pid);
@@ -222,67 +236,67 @@ int main(int argc , char *argv[])
                         printf("Host disconnected , ip %s , port %d \n" , inet_ntoa(client_address.sin_addr) , ntohs(client_address.sin_port));
                         close( new_tcp_socket );
                     }
-
-                    print("Val Read was: %d", valread);
-
-                    buffer[valread] ='\0';
-                    strcpy(incoming_message, buffer);
-
-                    /* Process the client command */
-                    if ((cmd_type = parse_input(incoming_message, cmd_buf)) == -1){
-                        printf("cmd error");
+                    else if(valread == -1){
+                        perror("TCP Read Error");
                     }
+                    else {
+                        buffer[valread] = '\0';
+                        strcpy(incoming_message, buffer);
 
-                    /*TODO: Handle malformed msg command */
-                    if (cmd_type == CRASH){
-                        active = FALSE;
-                        break;
-                    }
-                    else if(cmd_type == GET){
-                        /* prepare chatlog to send. */
-                        send_log(msg_log, num_msgs, chat_log_out);
-                        printf("Filled Chatlog: %s\n", chat_log_out);
+                        /* Process the client command */
+                        if ((cmd_type = parse_input(incoming_message, cmd_buf)) == -1) {
+                            printf("cmd error");
+                        }
 
-                        if(send(new_tcp_socket, chat_log_out, strlen(chat_log_out), 0 ) != strlen(chat_log_out)){
-                            printf("ChatLog Send wrong size\n");
+                        /*TODO: Handle malformed msg command */
+                        if (cmd_type == CRASH) {
+                            active = FALSE;
+                            break;
+                        } else if (cmd_type == GET) {
+                            /* prepare chatlog to send. */
+                            send_log(msg_log, num_msgs, chat_log_out);
+                            printf("Filled Chatlog: %s\n", chat_log_out);
+
+                            if (send(new_tcp_socket, chat_log_out, strlen(chat_log_out), 0) != strlen(chat_log_out)) {
+                                printf("ChatLog Send wrong size\n");
+                            }
+                        } else if (cmd_type == MSG) {
+                            /* New Message from client! */
+                            /* Always new */
+                            //printf("Server %d received new message from client\n", pid);
+
+                            num_msgs += add_new_message(cmd_buf->msg, pid, local_seqnum, msg_log,
+                                                        num_msgs, msg_ids, vector_clock, num_procs);
+                            fill_message(out_peer_msg_buf, RUMOR, pid, pid, local_seqnum,
+                                         vector_clock, cmd_buf->msg, num_procs);
+                            local_seqnum++;
+
+                            //printf("Filled Message:\n");
+                            //print_message(out_peer_msg_buf, num_procs);
+
+
+                            /* Send new message to nearby server */
+                            struct sockaddr_in peer_serv_addr;
+                            peer_serv_addr.sin_family = AF_INET;
+                            peer_serv_addr.sin_addr.s_addr = INADDR_ANY;
+
+                            i = pick_neighbor(num_neighbors);
+
+                            //printf("selected Neghbor number %d\n",i);
+                            peer_serv_addr.sin_port = htons(neighbor_ports[i]);
+
+                            printf("Sending Message to neighbor on UDP port: %d to port: %d\n ", udp_port,
+                                   ntohs(peer_serv_addr.sin_port));
+
+                            sendto(udp_socket, (const char *) out_peer_msg_buf, sizeof(struct message), MSG_DONTWAIT,
+                                   (const struct sockaddr *) &peer_serv_addr, sizeof(peer_serv_addr));
+                            printf("Message sent on UDP.\n\n");
                         }
                     }
-                    else if(cmd_type == MSG){
-                        /* New Message from client! */
-                        /* Always new */
-                        //printf("Server %d received new message from client\n", pid);
-
-                        num_msgs += add_new_message(cmd_buf->msg, pid, local_seqnum, msg_log,
-                                num_msgs, msg_ids, vector_clock, num_procs);
-                        fill_message(out_peer_msg_buf, RUMOR, pid, pid, local_seqnum,
-                                vector_clock, cmd_buf->msg , num_procs);
-                        local_seqnum++;
-
-                        //printf("Filled Message:\n");
-                        //print_message(out_peer_msg_buf, num_procs);
-
-
-                        /* Send new message to nearby server */
-                        struct sockaddr_in peer_serv_addr;
-                        peer_serv_addr.sin_family = AF_INET;
-                        peer_serv_addr.sin_addr.s_addr = INADDR_ANY;
-
-                        i = pick_neighbor(num_neighbors);
-
-                        //printf("selected Neghbor number %d\n",i);
-                        peer_serv_addr.sin_port = htons(neighbor_ports[i]);
-
-                        printf("Sending Message to neighbor on UDP port: %d to port: %d\n ", udp_port, ntohs(peer_serv_addr.sin_port));
-
-                        sendto(udp_socket, (const char *) out_peer_msg_buf, sizeof(struct message), MSG_DONTWAIT,
-                               (const struct sockaddr *) &peer_serv_addr, sizeof(peer_serv_addr));
-                        printf("Message sent on UDP.\n\n");
-                    }
-
 
 
                     /* SERVER -- SERVER UDP CONNECTION I/O */
-                } else {
+                } else if(i == udp_socket){
                     printf("Server %d Received a message on UDP\n",pid);
                     fflush(stdout);
 
@@ -294,24 +308,33 @@ int main(int argc , char *argv[])
 
                     len = sizeof(peer_serv_addr);
 
-                    if ((n = recvfrom(udp_socket, in_peer_msg_buf, sizeof(struct message), MSG_DONTWAIT, ( struct sockaddr *) &peer_serv_addr, &len)) == -1) {
-                        perror("Recv From Failed\n");
+                    for (j = 0;j<5; j++){
+                        if ((n = recvfrom(udp_socket, in_peer_msg_buf, sizeof(struct message), MSG_DONTWAIT, ( struct sockaddr *) &peer_serv_addr, &len)) == -1) {
+                            int errnum = errno;
+                            perror("Recv From Failed\n");
+                            printf("retrying: %d\n", i);
+                        }
+                        else{
+                        break;}
+                    }
+                    if (n == -1){
                         break;
                     }
 
                     if (in_peer_msg_buf->type == STATUS){
-                        printf("Status Mess receive\n");
+                        printf("Status Mess received. From server: %d, seqnum: %d\n",in_peer_msg_buf->from, in_peer_msg_buf->seqnum);
 
                         /* Compare Vector Clocks */
                         if ((stat = read_status_message(next_msg, in_peer_msg_buf, vector_clock, num_procs)) == 1){
                             /* We have messages to send*/
                             /* send the next message back to that guy.*/
-                            i = fmax(0, in_peer_msg_buf->from - pid);
-                            printf("Neigher idx is: %d\n", i);
+                            printf("Message is from server: %d, pid is %d. difference is %d\n",in_peer_msg_buf->from, pid, in_peer_msg_buf->from - pid);
+                            j = fmax(0, (int)in_peer_msg_buf->from - pid);
+                            printf("Neigher idx is: %d\n", j);
                             struct sockaddr_in peer_serv_addr;
                             peer_serv_addr.sin_family = AF_INET;
                             peer_serv_addr.sin_addr.s_addr = INADDR_ANY;
-                            peer_serv_addr.sin_port = htons(neighbor_ports[i]);
+                            peer_serv_addr.sin_port = htons(neighbor_ports[j]);
 
                             printf("Next Message is server %d, message %d\n", next_msg[0], next_msg[1]);
                             msg_idx = search_for_message(msg_ids, num_msgs,next_msg[0],next_msg[1]);
@@ -332,12 +355,13 @@ int main(int argc , char *argv[])
                              * */
 
                             printf("I need msgs\n");
-                            i = fmax(0, in_peer_msg_buf->from - pid);
-                            printf("Neigher idx is: %d\n", i);
+                            printf("Message is from server: %d, pid is %d. difference is %d\n",in_peer_msg_buf->from, pid, in_peer_msg_buf->from - pid);
+                            j = fmax(0, (int)in_peer_msg_buf->from - pid);
+                            printf("Neigher idx is: %d\n", j);
                             struct sockaddr_in peer_serv_addr;
                             peer_serv_addr.sin_family = AF_INET;
                             peer_serv_addr.sin_addr.s_addr = INADDR_ANY;
-                            peer_serv_addr.sin_port = htons(neighbor_ports[i]);
+                            peer_serv_addr.sin_port = htons(neighbor_ports[j]);
 
                             fill_message(out_peer_msg_buf, STATUS, pid, pid, 0, vector_clock, msg_log[0], num_procs);
 
@@ -374,12 +398,13 @@ int main(int argc , char *argv[])
                         /* Send status ack. */
                         fill_message(out_peer_msg_buf, STATUS, pid, pid, 0, vector_clock, msg_log[0], num_procs);
 
-                        i = fmax(0, in_peer_msg_buf->from - pid);
-                        printf("Neigher idx is: %d\n", i);
+                        printf("Message is from server: %d, pid is %d. difference is %d\n",in_peer_msg_buf->from, pid, in_peer_msg_buf->from - pid);
+                        j = fmax(0, (int)in_peer_msg_buf->from - pid);
+                        printf("Neigher idx is: %d\n", j);
                         struct sockaddr_in peer_serv_addr;
                         peer_serv_addr.sin_family = AF_INET;
                         peer_serv_addr.sin_addr.s_addr = INADDR_ANY;
-                        peer_serv_addr.sin_port = htons(neighbor_ports[i]);
+                        peer_serv_addr.sin_port = htons(neighbor_ports[j]);
 
                         printf("Sending ACK Message from UDP port: %d to port: %d\n ", udp_port, ntohs(peer_serv_addr.sin_port));
 

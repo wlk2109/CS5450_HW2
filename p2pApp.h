@@ -13,13 +13,13 @@
 #include <netinet/in.h>
 #include <sys/time.h>
 #include <math.h>
-
+#include <fcntl.h>
 
 
 /*--- Parameters ---*/
 #define NUM_SERVERS 4
 #define MAX_MSG_LEN 200
-#define MAX_MSGS 1000
+#define MAX_MSGS 6//1000
 #define TRUE 	 1
 #define FALSE 	 0
 #define ROOT_ID 20000
