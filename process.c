@@ -171,11 +171,12 @@ int main(int argc , char *argv[])
         perror("UDP bind failed");
         exit(EXIT_FAILURE);
     }
+    printf("Server %d , UDP socket on port: %d\n", pid, ntohs(udp_address.sin_port));
 
-    /* Initialize the set of active sockets. */
-    FD_ZERO (&active_fd_set);
-    FD_SET (new_tcp_socket, &active_fd_set);
-    FD_SET(udp_socket, &active_fd_set);
+//    /* Initialize the set of active sockets. */
+//    FD_ZERO (&active_fd_set);
+//    FD_SET (new_tcp_socket, &active_fd_set);
+//    FD_SET(udp_socket, &active_fd_set);
 
 
     /* Get P2P Ports to send on*/
@@ -187,6 +188,13 @@ int main(int argc , char *argv[])
     get_neighbor_ports(pid, num_procs, neighbor_ports);
 
     while(active == TRUE) {
+        printf("Top of While Loop\n\n");
+
+        /* Initialize the set of active sockets. */
+        FD_ZERO (&active_fd_set);
+        FD_SET (new_tcp_socket, &active_fd_set);
+        FD_SET(udp_socket, &active_fd_set);
+
 
         /* Block until input arrives on one or more active sockets. */
         read_fd_set = active_fd_set;
@@ -198,6 +206,8 @@ int main(int argc , char *argv[])
 
         /* Service all the sockets with input pending. */
         for (i = 0; i < FD_SETSIZE; ++i) {
+            printf("Top of For Loop, i = %d\n\n", i);
+
             if (FD_ISSET (i, &read_fd_set)) {
                 /* PROXY -- SERVER TCP CONNECTION I/O */
                 if ( i == new_tcp_socket) {
@@ -212,6 +222,8 @@ int main(int argc , char *argv[])
                         printf("Host disconnected , ip %s , port %d \n" , inet_ntoa(client_address.sin_addr) , ntohs(client_address.sin_port));
                         close( new_tcp_socket );
                     }
+
+                    print("Val Read was: %d", valread);
 
                     buffer[valread] ='\0';
                     strcpy(incoming_message, buffer);
@@ -238,7 +250,7 @@ int main(int argc , char *argv[])
                     else if(cmd_type == MSG){
                         /* New Message from client! */
                         /* Always new */
-                        printf("Server %d received new message from client\n", pid);
+                        //printf("Server %d received new message from client\n", pid);
 
                         num_msgs += add_new_message(cmd_buf->msg, pid, local_seqnum, msg_log,
                                 num_msgs, msg_ids, vector_clock, num_procs);
@@ -284,6 +296,7 @@ int main(int argc , char *argv[])
 
                     if ((n = recvfrom(udp_socket, in_peer_msg_buf, sizeof(struct message), MSG_DONTWAIT, ( struct sockaddr *) &peer_serv_addr, &len)) == -1) {
                         perror("Recv From Failed\n");
+                        break;
                     }
 
                     if (in_peer_msg_buf->type == STATUS){

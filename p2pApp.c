@@ -181,7 +181,7 @@ size_t update_log(message_t *msg, char **msg_log, size_t num_msg, uint16_t **msg
     }
 
     /*allocated pointers to store message_t and msg_id*/
-    printf("Allocating memory for new storage\n");
+    //printf("Allocating memory for new storage\n");
 
     char *msg_text = malloc(MAX_MSG_LEN* sizeof(char));
     uint16_t *msg_id = malloc(2*sizeof(uint16_t));
@@ -194,7 +194,7 @@ size_t update_log(message_t *msg, char **msg_log, size_t num_msg, uint16_t **msg
     msg_id[1] = msg->seqnum;
 
 
-    printf("Copied message_t: %s. From: %d. seqnum: %d\n",msg_text,msg_id[0], msg_id[1]);
+    //printf("Copied message_t: %s. From: %d. seqnum: %d\n",msg_text,msg_id[0], msg_id[1]);
 
 
     /* add the pointers to the cache. */
@@ -300,7 +300,7 @@ void update_vector_clock(uint16_t * vector_clock, uint16_t **msg_ids, size_t num
         uint16_t new_msg_server, int num_procs){
 
     printf("%d Total Messages. Updating vector clock:\n", num_msg);
-    print_vector_clock(vector_clock, num_procs);
+    //print_vector_clock(vector_clock, num_procs);
 
     int *temp[MAX_MSGS+1];
     int count = 0;
@@ -328,8 +328,8 @@ void update_vector_clock(uint16_t * vector_clock, uint16_t **msg_ids, size_t num
 
     vector_clock[new_msg_server] = i+1;
 
-    printf("New Vector Clock:\n");
-    print_vector_clock(vector_clock, num_procs);
+    //printf("New Vector Clock:\n");
+    //print_vector_clock(vector_clock, num_procs);
     return;
 }
 /**
