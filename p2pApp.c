@@ -264,7 +264,7 @@ int read_status_message(int *next_msg, message_t *msg, uint16_t *vector_clock, i
 
     uint16_t rcvd_status[num_procs];
     memcpy(rcvd_status, msg->vector_clock, sizeof(vector_clock[0])*num_procs);
-    printf("received statuss\n");
+    printf("received status\n");
     print_vector_clock(rcvd_status,num_procs );
 
     for(j = 0; j<num_procs; j++){

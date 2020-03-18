@@ -63,16 +63,14 @@ int main(int argc , char *argv[])
         strcpy(fake_cmd, "chatlog in yo ass");
         num_msgs += add_new_message(fake_cmd, pid, local_seqnum, msg_log,
                                     num_msgs, msg_ids, vector_clock, num_procs);
-        printf("Copied message From: %d. seqnum: %d\n",msg_ids[0][0], msg_ids[0][1]);
         local_seqnum++;
         num_msgs += add_new_message(fake_cmd, pid, local_seqnum, msg_log,
-                                    num_msgs, msg_ids, vector_clock, num_procs);
-        printf("Copied message From: %d. seqnum: %d\n",msg_ids[1][0], msg_ids[1][1]);
+                                                           num_msgs, msg_ids, vector_clock, num_procs);
         local_seqnum++;
-        num_msgs += add_new_message(fake_cmd, pid, local_seqnum, msg_log,
-                                    num_msgs, msg_ids, vector_clock, num_procs);
-        local_seqnum++;
-        search_for_message(msg_ids, num_msgs, 0, 2);
+//        num_msgs += add_new_message(fake_cmd, pid, local_seqnum, msg_log,
+//                                    num_msgs, msg_ids, vector_clock, num_procs);
+//        local_seqnum++;
+//        search_for_message(msg_ids, num_msgs, 0, 2);
     }
 //    send_log(msg_log, num_msgs, chat_log_out);
 //    printf("Filled Chatlog: %s\n", chat_log_out);
@@ -203,7 +201,7 @@ int main(int argc , char *argv[])
             if (FD_ISSET (i, &read_fd_set)) {
                 /* PROXY -- SERVER TCP CONNECTION I/O */
                 if ( i == new_tcp_socket) {
-                    printf("Received a message on TCP\n");
+                    printf("Server %d Received a message on TCP\n", pid);
                     fflush(stdout);
 
                     /*Check if it was for closing , and also read the incoming message_t*/
@@ -214,9 +212,9 @@ int main(int argc , char *argv[])
                         printf("Host disconnected , ip %s , port %d \n" , inet_ntoa(client_address.sin_addr) , ntohs(client_address.sin_port));
                         close( new_tcp_socket );
                     }
+
                     buffer[valread] ='\0';
                     strcpy(incoming_message, buffer);
-
 
                     /* Process the client command */
                     if ((cmd_type = parse_input(incoming_message, cmd_buf)) == -1){
@@ -240,14 +238,16 @@ int main(int argc , char *argv[])
                     else if(cmd_type == MSG){
                         /* New Message from client! */
                         /* Always new */
+                        printf("Server %d received new message from client\n", pid);
+
                         num_msgs += add_new_message(cmd_buf->msg, pid, local_seqnum, msg_log,
                                 num_msgs, msg_ids, vector_clock, num_procs);
-                        fill_message(out_peer_msg_buf, STATUS, pid, pid, local_seqnum,
+                        fill_message(out_peer_msg_buf, RUMOR, pid, pid, local_seqnum,
                                 vector_clock, cmd_buf->msg , num_procs);
                         local_seqnum++;
 
-                        printf("Filled Message:\n");
-                        print_message(out_peer_msg_buf, num_procs);
+                        //printf("Filled Message:\n");
+                        //print_message(out_peer_msg_buf, num_procs);
 
 
                         /* Send new message to nearby server */
@@ -257,21 +257,21 @@ int main(int argc , char *argv[])
 
                         i = pick_neighbor(num_neighbors);
 
-                        printf("selected Neghbor number %d\n",i);
+                        //printf("selected Neghbor number %d\n",i);
                         peer_serv_addr.sin_port = htons(neighbor_ports[i]);
 
-                        printf("Sending Message from UDP port: %d to port: %d\n ", udp_port, ntohs(peer_serv_addr.sin_port));
+                        printf("Sending Message to neighbor on UDP port: %d to port: %d\n ", udp_port, ntohs(peer_serv_addr.sin_port));
 
                         sendto(udp_socket, (const char *) out_peer_msg_buf, sizeof(struct message), MSG_DONTWAIT,
                                (const struct sockaddr *) &peer_serv_addr, sizeof(peer_serv_addr));
-                        printf("Test message sent on UDP.\n\n");
+                        printf("Message sent on UDP.\n\n");
                     }
 
 
 
                     /* SERVER -- SERVER UDP CONNECTION I/O */
                 } else {
-                    printf("Received a message on UDP\n");
+                    printf("Server %d Received a message on UDP\n",pid);
                     fflush(stdout);
 
                     //TODO: Put all this code in proper gossip logic functions
@@ -317,6 +317,7 @@ int main(int argc , char *argv[])
                             /* we need messages.
                              * send a status message.
                              * */
+
                             printf("I need msgs\n");
                             i = fmax(0, in_peer_msg_buf->from - pid);
                             printf("Neigher idx is: %d\n", i);
@@ -325,7 +326,7 @@ int main(int argc , char *argv[])
                             peer_serv_addr.sin_addr.s_addr = INADDR_ANY;
                             peer_serv_addr.sin_port = htons(neighbor_ports[i]);
 
-                            fill_message(out_peer_msg_buf, RUMOR, pid, pid, 0, vector_clock, msg_log[0], num_procs);
+                            fill_message(out_peer_msg_buf, STATUS, pid, pid, 0, vector_clock, msg_log[0], num_procs);
 
                             printf("Sending Message from UDP port: %d to port: %d\n ", udp_port, ntohs(peer_serv_addr.sin_port));
 
