@@ -12,6 +12,7 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <sys/time.h>
+#include <math.h>
 
 
 
@@ -65,7 +66,7 @@ void send_msg();
 void send_log(char **msg_log, size_t num_msg, char *chat_log);
 size_t update_log(message_t *msg, char **msg_log, size_t num_msg, uint16_t **msg_ids,
                   uint16_t *vector_clock, int num_procs);
-int search_for_message(int **msg_ids, size_t num_msg, uint16_t tar_server, uint16_t tar_seqnum);
+int search_for_message(uint16_t **msg_ids, size_t num_msg, uint16_t tar_server, uint16_t tar_seqnum);
 void update_vector_clock(uint16_t * vector_clock, uint16_t **msg_ids, size_t num_msg,
         uint16_t new_msg_server, int num_procs);
 void print_vector_clock(uint16_t *vector_clock, int num_procs);
@@ -77,5 +78,6 @@ void get_neighbor_ports(int pid, int num_procs, int neighbor_ports[]);
 int pick_neighbor(int num_neighbors);
 size_t add_new_message(char *msg, uint16_t pid, uint16_t seqnum, char **msg_log,
                        size_t num_msg, uint16_t **msg_ids, uint16_t *vector_clock, int num_procs);
+int read_status_message(int *next_msg, message_t *msg, uint16_t *vector_clock, int num_procs);
 
 #endif

@@ -39,6 +39,7 @@ int main(int argc , char *argv[])
     size_t num_msgs = 0;
     char chat_log_out[(MAX_MSG_LEN+1)*MAX_MSGS];
     char buffer[1025];  /*data buffer of 1K*/
+    int next_msg[2];
 
     /** Allocated variables */
     char **msg_log = (char**) malloc(MAX_MSGS*sizeof(char *));
@@ -48,8 +49,8 @@ int main(int argc , char *argv[])
      */
     uint16_t **msg_ids = (uint16_t **) malloc(MAX_MSGS*sizeof(uint16_t *));
     struct client_command *cmd_buf = malloc(sizeof(struct client_command));
-    struct message_t *out_peer_msg_buf = malloc(sizeof(message_t));
-    struct message_t *in_peer_msg_buf = malloc(sizeof(message_t));
+    struct message *out_peer_msg_buf = malloc(sizeof(message_t));
+    struct message *in_peer_msg_buf = malloc(sizeof(message_t));
 
     /* Init vector clock with 1's*/
     for (i=0; i<num_procs; i++){
@@ -57,17 +58,22 @@ int main(int argc , char *argv[])
     }
 
     /*** TESTING ***/
-//    char fake_cmd[250];
-//    strcpy(fake_cmd, "chatlog in yo ass");
-//    num_msgs += add_new_message(fake_cmd, pid, local_seqnum, msg_log,
-//                                num_msgs, msg_ids, vector_clock, num_procs);
-//    local_seqnum++;
-//    num_msgs += add_new_message(fake_cmd, pid, local_seqnum, msg_log,
-//                                num_msgs, msg_ids, vector_clock, num_procs);
-//    local_seqnum++;
-//    num_msgs += add_new_message(fake_cmd, pid, local_seqnum, msg_log,
-//                                num_msgs, msg_ids, vector_clock, num_procs);
-//    local_seqnum++;
+    if (pid == 0) {
+        char fake_cmd[250];
+        strcpy(fake_cmd, "chatlog in yo ass");
+        num_msgs += add_new_message(fake_cmd, pid, local_seqnum, msg_log,
+                                    num_msgs, msg_ids, vector_clock, num_procs);
+        printf("Copied message From: %d. seqnum: %d\n",msg_ids[0][0], msg_ids[0][1]);
+        local_seqnum++;
+        num_msgs += add_new_message(fake_cmd, pid, local_seqnum, msg_log,
+                                    num_msgs, msg_ids, vector_clock, num_procs);
+        printf("Copied message From: %d. seqnum: %d\n",msg_ids[1][0], msg_ids[1][1]);
+        local_seqnum++;
+        num_msgs += add_new_message(fake_cmd, pid, local_seqnum, msg_log,
+                                    num_msgs, msg_ids, vector_clock, num_procs);
+        local_seqnum++;
+        search_for_message(msg_ids, num_msgs, 0, 2);
+    }
 //    send_log(msg_log, num_msgs, chat_log_out);
 //    printf("Filled Chatlog: %s\n", chat_log_out);
 
@@ -236,7 +242,7 @@ int main(int argc , char *argv[])
                         /* Always new */
                         num_msgs += add_new_message(cmd_buf->msg, pid, local_seqnum, msg_log,
                                 num_msgs, msg_ids, vector_clock, num_procs);
-                        fill_message(out_peer_msg_buf, RUMOR, pid, pid, local_seqnum,
+                        fill_message(out_peer_msg_buf, STATUS, pid, pid, local_seqnum,
                                 vector_clock, cmd_buf->msg , num_procs);
                         local_seqnum++;
 
@@ -272,12 +278,102 @@ int main(int argc , char *argv[])
                     struct sockaddr_in peer_serv_addr;
                     memset(&peer_serv_addr, 0, sizeof(peer_serv_addr));
                     char udp_buffer[1024];
-                    int len, n;
+                    int len, n, stat, msg_idx;
 
                     len = sizeof(peer_serv_addr);
 
                     if ((n = recvfrom(udp_socket, in_peer_msg_buf, sizeof(struct message), MSG_DONTWAIT, ( struct sockaddr *) &peer_serv_addr, &len)) == -1) {
                         perror("Recv From Failed\n");
+                    }
+
+                    if (in_peer_msg_buf->type == STATUS){
+                        printf("Status Mess receive\n");
+
+                        /* Compare Vector Clocks */
+                        if ((stat = read_status_message(next_msg, in_peer_msg_buf, vector_clock, num_procs)) == 1){
+                            /* We have messages to send*/
+                            /* send the next message back to that guy.*/
+                            i = fmax(0, in_peer_msg_buf->from - pid);
+                            printf("Neigher idx is: %d\n", i);
+                            struct sockaddr_in peer_serv_addr;
+                            peer_serv_addr.sin_family = AF_INET;
+                            peer_serv_addr.sin_addr.s_addr = INADDR_ANY;
+                            peer_serv_addr.sin_port = htons(neighbor_ports[i]);
+
+                            printf("Next Message is server %d, message %d\n", next_msg[0], next_msg[1]);
+                            msg_idx = search_for_message(msg_ids, num_msgs,next_msg[0],next_msg[1]);
+                            fill_message(out_peer_msg_buf, RUMOR, pid, next_msg[0], next_msg[1], vector_clock, msg_log[msg_idx], num_procs);
+
+                            printf("Sending Message from UDP port: %d to port: %d\n ", udp_port, ntohs(peer_serv_addr.sin_port));
+
+                            /* Send new message to nearby server */
+
+
+                            sendto(udp_socket, (const char *) out_peer_msg_buf, sizeof(struct message), MSG_DONTWAIT,
+                                   (const struct sockaddr *) &peer_serv_addr, sizeof(peer_serv_addr));
+                            printf("Test message sent on UDP.\n\n");
+
+                        } else if (stat == -1){
+                            /* we need messages.
+                             * send a status message.
+                             * */
+                            printf("I need msgs\n");
+                            i = fmax(0, in_peer_msg_buf->from - pid);
+                            printf("Neigher idx is: %d\n", i);
+                            struct sockaddr_in peer_serv_addr;
+                            peer_serv_addr.sin_family = AF_INET;
+                            peer_serv_addr.sin_addr.s_addr = INADDR_ANY;
+                            peer_serv_addr.sin_port = htons(neighbor_ports[i]);
+
+                            fill_message(out_peer_msg_buf, RUMOR, pid, pid, 0, vector_clock, msg_log[0], num_procs);
+
+                            printf("Sending Message from UDP port: %d to port: %d\n ", udp_port, ntohs(peer_serv_addr.sin_port));
+
+                            /* Send new message to nearby server */
+
+                            sendto(udp_socket, (const char *) out_peer_msg_buf, sizeof(struct message), MSG_DONTWAIT,
+                                   (const struct sockaddr *) &peer_serv_addr, sizeof(peer_serv_addr));
+                            printf("Test message sent on UDP.\n\n");
+
+                        }
+                        else{
+                            /* Nothing to do.
+                             * flip a coin for more rumor mongering
+                             * */
+                            printf("Nothing to do\n");
+
+                        }
+
+
+                    }
+                    else if(in_peer_msg_buf->type = RUMOR){
+                        printf(" Rumor Message Received\n");
+                        /* New Message: */
+                        update_log(in_peer_msg_buf, msg_log, num_msgs, msg_ids, vector_clock, num_procs);
+
+                        if(num_neighbors > 1){
+                            /* Resend Rumor to random neighbor*/
+                            printf("I have more neighbors. Resend rumor here.\n");
+                            continue;
+                        }
+
+                        /* Send status ack. */
+                        fill_message(out_peer_msg_buf, STATUS, pid, pid, 0, vector_clock, msg_log[0], num_procs);
+
+                        i = fmax(0, in_peer_msg_buf->from - pid);
+                        printf("Neigher idx is: %d\n", i);
+                        struct sockaddr_in peer_serv_addr;
+                        peer_serv_addr.sin_family = AF_INET;
+                        peer_serv_addr.sin_addr.s_addr = INADDR_ANY;
+                        peer_serv_addr.sin_port = htons(neighbor_ports[i]);
+
+                        printf("Sending ACK Message from UDP port: %d to port: %d\n ", udp_port, ntohs(peer_serv_addr.sin_port));
+
+                        /* Send new message to nearby server */
+
+                        sendto(udp_socket, (const char *) out_peer_msg_buf, sizeof(struct message), MSG_DONTWAIT,
+                               (const struct sockaddr *) &peer_serv_addr, sizeof(peer_serv_addr));
+                        printf("Ack message sent on UDP.\n\n");
                     }
 //                    print_message(in_peer_msg_buf,num_procs);
 //                    udp_buffer[n] = '\0';

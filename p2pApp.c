@@ -64,6 +64,9 @@ int pick_neighbor(int num_neighbors){
 
 int init_neighbors(int pid, int num_procs, int *potential){
     int num_neighbors = 0;
+    if (pid > num_procs){
+        return 0;
+    }
     if (pid > 0){
         potential[0]=TRUE;
         num_neighbors++;
@@ -186,9 +189,9 @@ size_t update_log(message_t *msg, char **msg_log, size_t num_msg, uint16_t **msg
     msg_id[0] = msg->origin;
     msg_id[1] = msg->seqnum;
 
-    /*
+
     printf("Copied message_t: %s. From: %d. seqnum: %d\n",msg_text,msg_id[0], msg_id[1]);
-    */
+
 
     /* add the pointers to the cache. */
     msg_log[num_msg] = msg_text;
@@ -212,9 +215,9 @@ size_t add_new_message(char *msg, uint16_t pid, uint16_t seqnum, char **msg_log,
     msg_id[0] = pid;
     msg_id[1] = seqnum;
 
-
+    /*
     printf("Copied message_t: %s. From: %d. seqnum: %d\n",msg_text,msg_id[0], msg_id[1]);
-
+    */
 
     /* add the pointers to the cache. */
     msg_log[num_msg] = msg_text;
@@ -229,30 +232,46 @@ size_t add_new_message(char *msg, uint16_t pid, uint16_t seqnum, char **msg_log,
 
 
 /* Returns index of specified message_t, or -1 if not in msg log*/
-int search_for_message(int **msg_ids, size_t num_msg, uint16_t tar_server, uint16_t tar_seqnum){
+int search_for_message(uint16_t **msg_ids, size_t num_msg, uint16_t tar_server, uint16_t tar_seqnum){
     int i;
+    printf("searching\n");
     for (i = 0; i<num_msg; i++){
+        printf("Message from server: %d, seq: %d\n", msg_ids[i][0], msg_ids[i][1]);
         if(msg_ids[i][0] == tar_server && msg_ids[i][1] == tar_seqnum){
+            printf("message found\n");
             return i;
         }
     }
+    printf("message not found\n");
     return -1;
 }
+
 /** receives a status message.
  *  gets the vector clock.
  *  return: -1 if server needs to get messages, 0 if nothing to do, 1 if server needs to send message.
  * */
-int read_status_message(int *msg_to_send, message_t *msg, uint16_t *vector_clock, int num_procs){
+int read_status_message(int *next_msg, message_t *msg, uint16_t *vector_clock, int num_procs){
+    printf("processing Status. Current Status:\n");
+    print_vector_clock(vector_clock, num_procs);
+
+
     int need_msgs = FALSE;
     int j;
+
     uint16_t rcvd_status[num_procs];
-    memcpy(msg->vector_clock, rcvd_status, sizeof(vector_clock[0])*num_procs);
+    memcpy(rcvd_status, msg->vector_clock, sizeof(vector_clock[0])*num_procs);
+    printf("received statuss\n");
+    print_vector_clock(rcvd_status,num_procs );
+
     for(j = 0; j<num_procs; j++){
         /* Check each peer's seqnum to determine if the status sender needs messages*/
         if (vector_clock[j]  > rcvd_status[j]){
             /* If servere has a higher number, sender needs message.
              * Make msg to send first unread message and return immediately. */
-            memcpy(msg_to_send[0],j, sizeof(int));
+
+            //memcpy(next_msg[0],j, sizeof(int));
+            next_msg[0] = j;
+            next_msg[1] = rcvd_status[j];
             return 1;
         }
         else if (vector_clock[j]  < rcvd_status[j]) {
