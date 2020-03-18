@@ -123,15 +123,33 @@ void send_log(char **msg_log, size_t num_msg, char *chat_log){
     /*
      * Zero out old chatlog
      */
+    char *str[MAX_MSG_LEN];
     printf("parsing log to send\n");
     memset(chat_log, 0, sizeof(*chat_log));
     strcat(chat_log, "chatLog ");
-    int i;
+    int i,j, len;
     for(i =0; i<num_msg; i++){
+
         if (i>0){
             strcat(chat_log, ",");
         }
-        strcat(chat_log, msg_log[i]);
+        strcpy(str, msg_log[i]);
+        len = strlen(str);
+        printf("Length of message: %d\n", len);
+
+        for(j = 0; j <= len;j++){
+            if (str[j] == '\n'){
+                printf("Found a newline\n");
+                str[j] = '\0';
+                break;
+            }
+            if (str[j] == '\0'){
+                printf("found a null at %d\n", j);
+            }
+        }
+        str[len-1] = '\0';
+        printf("str: %s\n", str);
+        strcat(chat_log, str);
     }
 }
 

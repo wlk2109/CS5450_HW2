@@ -58,6 +58,19 @@ int main(int argc , char *argv[])
 
     /*** TESTING ***/
     char fake_cmd[250];
+    strcpy(fake_cmd, "chatlog in yo ass");
+    num_msgs += add_new_message(fake_cmd, pid, local_seqnum, msg_log,
+                                num_msgs, msg_ids, vector_clock, num_procs);
+    local_seqnum++;
+    num_msgs += add_new_message(fake_cmd, pid, local_seqnum, msg_log,
+                                num_msgs, msg_ids, vector_clock, num_procs);
+    local_seqnum++;
+    num_msgs += add_new_message(fake_cmd, pid, local_seqnum, msg_log,
+                                num_msgs, msg_ids, vector_clock, num_procs);
+    local_seqnum++;
+    send_log(msg_log, num_msgs, chat_log_out);
+    printf("Filled Chatlog: %s\n", chat_log_out);
+
     /*
      * testing parse_input
 
@@ -212,7 +225,11 @@ int main(int argc , char *argv[])
                     else if(cmd_type == GET){
                         /* prepare chatlog to send. */
                         send_log(msg_log, num_msgs, chat_log_out);
-                        send(new_tcp_socket , chat_log_out , strlen(chat_log_out) , 0 );
+                        printf("Filled Chatlog: %s\n", chat_log_out);
+
+                        if(send(new_tcp_socket, chat_log_out, strlen(chat_log_out), 0 ) != strlen(chat_log_out)){
+                            printf("ChatLog Send wrong size\n");
+                        }
                     }
                     else if(cmd_type == MSG){
                         /* New Message from client! */
@@ -262,7 +279,7 @@ int main(int argc , char *argv[])
                     if ((n = recvfrom(udp_socket, in_peer_msg_buf, sizeof(struct message), MSG_DONTWAIT, ( struct sockaddr *) &peer_serv_addr, &len)) == -1) {
                         perror("Recv From Failed\n");
                     }
-                    print_message(in_peer_msg_buf,num_procs);
+//                    print_message(in_peer_msg_buf,num_procs);
 //                    udp_buffer[n] = '\0';
 //                    printf("Client : %s\n", udp_buffer);
                 }
