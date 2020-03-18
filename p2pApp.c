@@ -136,10 +136,13 @@ void send_log(char **msg_log, size_t num_msg, char *chat_log){
     int i,j, len;
 
     for(i =0; i<num_msg; i++){
+        char *curr_msg = msg_log[i];
+        curr_msg[strlen(curr_msg)-1] = 0;
+
         if (i>0){
             strcat(chat_log, ",");
         }
-        strcat(chat_log, msg_log[i]);
+        strcat(chat_log, curr_msg);
     }
 }
 
