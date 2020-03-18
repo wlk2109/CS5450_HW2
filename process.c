@@ -300,7 +300,6 @@ int main(int argc , char *argv[])
                     printf("Server %d Received a message on UDP\n",pid);
                     fflush(stdout);
 
-                    //TODO: Put all this code in proper gossip logic functions
                     struct sockaddr_in peer_serv_addr;
                     memset(&peer_serv_addr, 0, sizeof(peer_serv_addr));
                     char udp_buffer[1024];
@@ -308,18 +307,15 @@ int main(int argc , char *argv[])
 
                     len = sizeof(peer_serv_addr);
 
-                    for (j = 0;j<5; j++){
-                        if ((n = recvfrom(udp_socket, in_peer_msg_buf, sizeof(struct message), MSG_DONTWAIT, ( struct sockaddr *) &peer_serv_addr, &len)) == -1) {
-                            int errnum = errno;
-                            perror("Recv From Failed\n");
-                            printf("retrying: %d\n", i);
-                        }
-                        else{
-                        break;}
-                    }
-                    if (n == -1){
+                    if ((n = recvfrom(udp_socket, in_peer_msg_buf, sizeof(struct message), MSG_DONTWAIT, ( struct sockaddr *) &peer_serv_addr, &len)) == -1) {
+                        int errnum = errno;
+                        perror("Recv From Failed\n");
                         break;
                     }
+
+                    printf("Read %d bytes from udp\n", n);
+
+
 
                     if (in_peer_msg_buf->type == STATUS){
                         printf("Status Mess received. From server: %d, seqnum: %d\n",in_peer_msg_buf->from, in_peer_msg_buf->seqnum);
@@ -385,26 +381,33 @@ int main(int argc , char *argv[])
 
                     }
                     else if(in_peer_msg_buf->type = RUMOR){
-                        printf(" Rumor Message Received\n");
-                        /* New Message: */
-                        update_log(in_peer_msg_buf, msg_log, num_msgs, msg_ids, vector_clock, num_procs);
 
-                        if(num_neighbors > 1){
-                            /* Resend Rumor to random neighbor*/
-                            printf("I have more neighbors. Resend rumor here.\n");
-                            continue;
+                        printf(" Rumor Message Received from server %s\n", in_peer_msg_buf->from);
+
+                        j = update_log(in_peer_msg_buf, msg_log, num_msgs, msg_ids, vector_clock, num_procs;
+                        num_msgs+=j;
+
+                        /* New Message: */
+                        if (j == 1){
+                            if(num_neighbors > 1) {
+                                /* Resend Rumor to random neighbor if it is a new message*/
+                                printf("I have more neighbors. Resend rumor here.\n");
+                            }
                         }
 
-                        /* Send status ack. */
-                        fill_message(out_peer_msg_buf, STATUS, pid, pid, 0, vector_clock, msg_log[0], num_procs);
+                        /* Any Rumor message. Send an Ack*/
 
                         printf("Message is from server: %d, pid is %d. difference is %d\n",in_peer_msg_buf->from, pid, in_peer_msg_buf->from - pid);
+
                         j = fmax(0, (int)in_peer_msg_buf->from - pid);
                         printf("Neigher idx is: %d\n", j);
-                        struct sockaddr_in peer_serv_addr;
+
                         peer_serv_addr.sin_family = AF_INET;
                         peer_serv_addr.sin_addr.s_addr = INADDR_ANY;
                         peer_serv_addr.sin_port = htons(neighbor_ports[j]);
+
+                        /* Send status ack. */
+                        fill_message(out_peer_msg_buf, STATUS, pid, pid, 0, vector_clock, msg_log[0], num_procs);
 
                         printf("Sending ACK Message from UDP port: %d to port: %d\n ", udp_port, ntohs(peer_serv_addr.sin_port));
 

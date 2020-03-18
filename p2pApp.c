@@ -299,29 +299,30 @@ int read_status_message(int *next_msg, message_t *msg, uint16_t *vector_clock, i
 void update_vector_clock(uint16_t * vector_clock, uint16_t **msg_ids, size_t num_msg,
         uint16_t new_msg_server, int num_procs){
 
-    printf("%d Total Messages. Updating vector clock for server %d:\n", num_msg, new_msg_server);
-    print_vector_clock(vector_clock, num_procs);
+//    printf("%d Total Messages. Updating vector clock for server %d:\n", num_msg, new_msg_server);
+//    print_vector_clock(vector_clock, num_procs);
 
-    int *temp[MAX_MSGS+1];
+    uint16_t *temp[MAX_MSGS+1];
     int count = 0;
-    memset(temp, FALSE, sizeof(*temp));
+    memset(temp, 0, sizeof(*temp));
 
     int i;
     for (i = 0; i<num_msg; i++) {
 
-        printf("Message %d. From: %d. seqnum: %d\n", i, msg_ids[i][0], msg_ids[i][1]);
+//        printf("Message %d. From: %d. seqnum: %d\n", i, msg_ids[i][0], msg_ids[i][1]);
 
         if (msg_ids[i][0] == new_msg_server) {
 
-            printf("Found a message_t on server %d, seq_num %d\n",new_msg_server, msg_ids[i][1]);
-
+//            printf("Found a message_t on server %d, seq_num %d\n",new_msg_server, msg_ids[i][1]);
+//            printf("Setting temp %d\n",msg_ids[i][1]-1);
             temp[msg_ids[i][1]-1] = TRUE;
             count++;
         }
     }
     for (i = 0; i<count+1; i++){
-        if (temp[i]==FALSE){
-            printf("Found first zero at index: %d\n", i);
+        printf("Temp %d: %d",i, temp[i]);
+        if (temp[i]!=TRUE){
+//            printf("Found first zero at index: %d\n", i);
             break;
         }
     }
@@ -366,9 +367,10 @@ void print_vector_clock(uint16_t *vector_clock, int num_procs){
 
 void print_message(message_t *msg, int num_procs){
     printf("Message Type: %d\n"
+           "Origin Server: %d\n"
            "From Server: %d\n"
            "sequence Number:%d\n"
-           "message_t contents: %s\n", msg->type, msg->origin, msg->seqnum, msg->msg);
+           "message_t contents: %s\n", msg->type, msg->origin, msg->from,msg->seqnum, msg->msg);
     printf(" Status vector from message_t:\n");
     print_vector_clock(msg->vector_clock, num_procs);
     return;
