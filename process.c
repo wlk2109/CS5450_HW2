@@ -48,7 +48,8 @@ int main(int argc , char *argv[])
      */
     uint16_t **msg_ids = (uint16_t **) malloc(MAX_MSGS*sizeof(uint16_t *));
     struct client_command *cmd_buf = malloc(sizeof(struct client_command));
-    struct message_t *peer_msg_buf = malloc(sizeof(message_t));
+    struct message_t *out_peer_msg_buf = malloc(sizeof(message_t));
+    struct message_t *in_peer_msg_buf = malloc(sizeof(message_t));
 
     /* Init vector clock with 1's*/
     for (i=0; i<num_procs; i++){
@@ -117,19 +118,17 @@ int main(int argc , char *argv[])
         perror("TCP bind failed");
         exit(EXIT_FAILURE);
     }
-    printf("TCP Bind Successful on port %d \n", ntohs(tcp_address.sin_port));
-    fflush(stdout);
 
     /*try to specify maximum of 3 pending connections for the master socket*/
     if (listen(tcp_socket, 3) < 0) {
         perror("listen error");
         exit(EXIT_FAILURE);
     }
-
+/*
     printf("TCP Listen\n");
     printf("Listener on port %d \n", ntohs(tcp_address.sin_port));
     fflush(stdout);
-
+*/
     if ((new_tcp_socket = accept(tcp_socket, (struct sockaddr *) &client_address, (socklen_t *) &tcp_addr_len)) < 0) {
         perror("accept");
         fflush(stderr);
@@ -140,13 +139,15 @@ int main(int argc , char *argv[])
     printf("New connection , socket fd is %d , ip is : %s , port : %d\n", new_tcp_socket,
            inet_ntoa(tcp_address.sin_addr), ntohs(tcp_address.sin_port));
 
+    /*
     char *message = "TCP Connection Established between proxy and server\r\n";
     fflush(stdout);
 
-    /*send new connection greeting message_t*/
+    /*send new connection greeting message_t
     if (send(new_tcp_socket, message, strlen(message), 0) != strlen(message)) {
         perror("Intial TCP connection send error");
     }
+    */
 
     /*Bind the UDP socket to localhost and port with PID + 20000*/
     if (bind(udp_socket, (struct sockaddr *) &udp_address, sizeof(udp_address)) < 0) {
@@ -200,10 +201,10 @@ int main(int argc , char *argv[])
 
                     /* Process the client command */
                     if ((cmd_type = parse_input(incoming_message, cmd_buf)) == -1){
-                        perror("weird command");
-                        exit (EXIT_FAILURE);
+                        printf("cmd error");
                     }
 
+                    /*TODO: Handle malformed msg command */
                     if (cmd_type == CRASH){
                         active = FALSE;
                         break;
@@ -216,8 +217,15 @@ int main(int argc , char *argv[])
                     else if(cmd_type == MSG){
                         /* New Message from client! */
                         /* Always new */
-                        fill_message(peer_msg_buf, RUMOR, pid, pid, local_seqnum, vector_clock, cmd_buf->msg ,num_procs);
-                        num_msgs += update_log(peer_msg_buf, msg_log, num_msgs, msg_ids, vector_clock, num_procs);
+                        num_msgs += add_new_message(cmd_buf->msg, pid, local_seqnum, msg_log,
+                                num_msgs, msg_ids, vector_clock, num_procs);
+                        fill_message(out_peer_msg_buf, RUMOR, pid, pid, local_seqnum,
+                                vector_clock, cmd_buf->msg , num_procs);
+                        local_seqnum++;
+
+                        printf("Filled Message:\n");
+                        print_message(out_peer_msg_buf, num_procs);
+
 
                         /* Send new message to nearby server */
                         struct sockaddr_in peer_serv_addr;
@@ -230,11 +238,11 @@ int main(int argc , char *argv[])
                         peer_serv_addr.sin_port = htons(neighbor_ports[i]);
 
                         printf("Sending Message from UDP port: %d to port: %d\n ", udp_port, ntohs(peer_serv_addr.sin_port));
-                        sendto(udp_socket, (const char *) incoming_message, sizeof(incoming_message), MSG_DONTWAIT,
-                               (const struct sockaddr *) &peer_serv_addr, sizeof(peer_serv_addr));
-                        printf("Test message sent on UDP.\n");
-                    }
 
+                        sendto(udp_socket, (const char *) out_peer_msg_buf, sizeof(struct message), MSG_DONTWAIT,
+                               (const struct sockaddr *) &peer_serv_addr, sizeof(peer_serv_addr));
+                        printf("Test message sent on UDP.\n\n");
+                    }
 
 
 
@@ -251,12 +259,12 @@ int main(int argc , char *argv[])
 
                     len = sizeof(peer_serv_addr);
 
-                    if (n = recvfrom(udp_socket, (char *)udp_buffer, 1024, MSG_DONTWAIT, ( struct sockaddr *) &peer_serv_addr, &len) == -1) {
+                    if ((n = recvfrom(udp_socket, in_peer_msg_buf, sizeof(struct message), MSG_DONTWAIT, ( struct sockaddr *) &peer_serv_addr, &len)) == -1) {
                         perror("Recv From Failed\n");
                     }
-
-                    udp_buffer[n] = '\0';
-                    printf("Client : %s\n", udp_buffer);
+                    print_message(in_peer_msg_buf,num_procs);
+//                    udp_buffer[n] = '\0';
+//                    printf("Client : %s\n", udp_buffer);
                 }
             }
         }
@@ -265,7 +273,8 @@ int main(int argc , char *argv[])
      * Free Memory and exit.
      */
     free(cmd_buf);
-    free(peer_msg_buf);
+    free(out_peer_msg_buf);
+    free(in_peer_msg_buf);
     for (i =0; i<num_msgs; i++){
         free(msg_log[i]);
         free(msg_ids[i]);

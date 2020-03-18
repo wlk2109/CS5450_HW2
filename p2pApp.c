@@ -10,7 +10,7 @@
  */
 int parse_input(char *cmd_string, client_command *client_cmd){
 
-    printf("Incoming: %s\n", cmd_string);
+    printf("parse_input - Incoming: %s\n", cmd_string);
 
     char* token = strtok(cmd_string, " ");
 
@@ -20,7 +20,7 @@ int parse_input(char *cmd_string, client_command *client_cmd){
      */
 
     if (strcmp(token, "msg")==0){
-        printf("It's a message\n");
+
         client_cmd ->cmd_type = MSG;
 
         token = strtok(NULL, " ");
@@ -141,7 +141,8 @@ void send_log(char **msg_log, size_t num_msg, char *chat_log){
  * Update vector clock
  *
  */
-size_t update_log(message_t *msg, char **msg_log, size_t num_msg, uint16_t **msg_ids, uint16_t *vector_clock, int num_procs){
+size_t update_log(message_t *msg, char **msg_log, size_t num_msg, uint16_t **msg_ids,
+        uint16_t *vector_clock, int num_procs){
 
     /* Check Vector clock to see if the message_t is present */
     int expected_seq_num = vector_clock[msg->origin];
@@ -189,7 +190,33 @@ size_t update_log(message_t *msg, char **msg_log, size_t num_msg, uint16_t **msg
     msg_ids[num_msg] = msg_id;
 
     /* update vector clock */
-    update_vector_clock(vector_clock, msg_ids, num_msg, msg_id[0], num_procs);
+    update_vector_clock(vector_clock, msg_ids, num_msg+1, msg_id[0], num_procs);
+
+    return 1;
+}
+
+size_t add_new_message(char *msg, uint16_t pid, uint16_t seqnum, char **msg_log,
+        size_t num_msg, uint16_t **msg_ids, uint16_t *vector_clock, int num_procs){
+
+    char *msg_text = malloc(MAX_MSG_LEN* sizeof(char));
+    uint16_t *msg_id = malloc(2*sizeof(uint16_t));
+
+    /* assign values to the pointers. */
+    strncpy(msg_text, msg, strlen(msg));
+
+    msg_id[0] = pid;
+    msg_id[1] = seqnum;
+
+
+    printf("Copied message_t: %s. From: %d. seqnum: %d\n",msg_text,msg_id[0], msg_id[1]);
+
+
+    /* add the pointers to the cache. */
+    msg_log[num_msg] = msg_text;
+    msg_ids[num_msg] = msg_id;
+
+    /* update vector clock */
+    update_vector_clock(vector_clock, msg_ids, num_msg+1, msg_id[0], num_procs);
 
     return 1;
 }
@@ -253,16 +280,20 @@ void update_vector_clock(uint16_t * vector_clock, uint16_t **msg_ids, size_t num
 
     int i;
     for (i = 0; i<num_msg; i++) {
+        /*
         printf("Message %d. From: %d. seqnum: %d\n", i, msg_ids[i][0], msg_ids[i][1]);
+        */
         if (msg_ids[i][0] == new_msg_server) {
+            /*
             printf("Found a message_t on server %d, seq_num %d\n",new_msg_server, msg_ids[i][1]);
+            */
             temp[msg_ids[i][1]-1] = TRUE;
             count++;
         }
     }
     for (i = 0; i<count+1; i++){
         if (temp[i]==FALSE){
-            printf("Found first zero at index: %d\n", i);
+            /*printf("Found first zero at index: %d\n", i);*/
             break;
         }
     }
@@ -279,12 +310,13 @@ void update_vector_clock(uint16_t * vector_clock, uint16_t **msg_ids, size_t num
  */
 void fill_message(message_t *msg_buff, enum message_type type, uint16_t server_pid,uint16_t origin_pid,
                   uint16_t seqnum, uint16_t *vector_clock, char *msg, int num_procs){
+
     msg_buff->seqnum = seqnum;
     msg_buff->type = type;
-    msg_buff->origin = origin_pid;
     msg_buff->message_len = strlen(msg);
+    msg_buff->origin = origin_pid;
     msg_buff->from = server_pid;
-    memcpy(msg_buff->vector_clock, vector_clock, sizeof(vector_clock[0])*num_procs);
+    memcpy(msg_buff->vector_clock, vector_clock, sizeof(vector_clock[0])*MAX_MSG_LEN);
 
     if (type == STATUS){
         memset(msg_buff->msg, 0, MAX_MSG_LEN);
@@ -292,9 +324,6 @@ void fill_message(message_t *msg_buff, enum message_type type, uint16_t server_p
     else{
         strcpy(msg_buff->msg, msg);
     }
-
-    printf("Filled Message:\n");
-    print_message(msg_buff, num_procs);
 
     return;
 }
@@ -304,6 +333,7 @@ void print_vector_clock(uint16_t *vector_clock, int num_procs){
     for (i = 0; i<num_procs; i++){
         printf("Server: %d. Next Seqnum: %d\n",i,vector_clock[i]);
     }
+    printf("\n");
 }
 
 void print_message(message_t *msg, int num_procs){

@@ -75,5 +75,7 @@ void fill_message(message_t *msg_buff, enum message_type type, uint16_t server_p
 int init_neighbors(int pid, int num_procs, int *potential);
 void get_neighbor_ports(int pid, int num_procs, int neighbor_ports[]);
 int pick_neighbor(int num_neighbors);
+size_t add_new_message(char *msg, uint16_t pid, uint16_t seqnum, char **msg_log,
+                       size_t num_msg, uint16_t **msg_ids, uint16_t *vector_clock, int num_procs);
 
 #endif
