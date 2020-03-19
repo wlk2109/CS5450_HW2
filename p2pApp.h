@@ -23,7 +23,6 @@
 #define TRUE 	 1
 #define FALSE 	 0
 #define ROOT_ID 20000
-#define RAND_MAX 2
 #define HEADS 1
 #define TAILS 0
 

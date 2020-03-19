@@ -236,7 +236,7 @@ int main(int argc , char *argv[])
 
                             neighbor_index = pick_neighbor(num_neighbors);
 
-                            //printf("selected Neighbor number %d\n",i);
+                            printf("selected Neighbor number %d\n",neighbor_index);
                             peer_serv_addr.sin_port = htons(neighbor_ports[neighbor_index]);
 
                             printf("Sending Message to neighbor on UDP port: %d to port: %d\n ", udp_port,

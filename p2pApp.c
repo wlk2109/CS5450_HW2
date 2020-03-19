@@ -58,7 +58,7 @@ int pick_neighbor(int num_neighbors){
     if (num_neighbors == 1){
         return 0;
     }
-    return rand();
+    return rand()%2;
 }
 
 int init_neighbors(int pid, int num_procs, int *potential){
