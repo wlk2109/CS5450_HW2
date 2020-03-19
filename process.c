@@ -67,10 +67,11 @@ int main(int argc , char *argv[])
         num_msgs += add_new_message(fake_cmd, pid, local_seqnum, msg_log,
                                                            num_msgs, msg_ids, vector_clock, num_procs);
         local_seqnum++;}
-////        num_msgs += add_new_message(fake_cmd, pid, local_seqnum, msg_log,
-////                                    num_msgs, msg_ids, vector_clock, num_procs);
-////        local_seqnum++;
-////        search_for_message(msg_ids, num_msgs, 0, 2);
+    perror("TESTING");
+//        num_msgs += add_new_message(fake_cmd, pid, local_seqnum, msg_log,
+//                                    num_msgs, msg_ids, vector_clock, num_procs);
+//        local_seqnum++;
+//        search_for_message(msg_ids, num_msgs, 0, 2);
 //    }
 //    send_log(msg_log, num_msgs, chat_log_out);
 //    printf("Filled Chatlog: %s\n", chat_log_out);
@@ -312,7 +313,7 @@ int main(int argc , char *argv[])
                         perror("Recv From Failed\n");
                         break;
                     }
-
+                    perror("is there an error?");
                     printf("Read %d bytes from udp. Message is: \n", n);
 //                    print_message(in_peer_msg_buf, num_procs);
                     perror("HELP");
