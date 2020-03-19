@@ -399,7 +399,7 @@ int main(int argc , char *argv[])
 
 
                     }
-                    else if(in_peer_msg_buf->type = RUMOR){
+                    else if(in_peer_msg_buf->type == RUMOR){
 
                         printf(" Rumor Message Received from server %s\n", in_peer_msg_buf->from);
 
