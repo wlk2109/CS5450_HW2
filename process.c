@@ -21,11 +21,10 @@ int main(int argc , char *argv[])
     int local_seqnum = 1; /* Next seqnum the server will send. */
 
     /** Server variables */
-    struct sockaddr_in client_address;
-    struct sockaddr_in tcp_address;
-    struct sockaddr_in udp_address;
+    struct sockaddr_in client_address, udp_address, tcp_address, peer_serv_addr;
     int tcp_socket, new_tcp_socket, udp_socket, i,j, neighbor_index, cmd_type, num_neighbors, valread;
     int active = TRUE;
+    int gossip = TRUE;
     fd_set active_fd_set, read_fd_set;
 
     /** App Logic Variables*/
@@ -133,7 +132,28 @@ int main(int argc , char *argv[])
 
     while(active == TRUE) {
         /* TODO: send status message to neighbors */
+        if (gossip == TRUE){
+            gossip = FALSE;
+            /* Upon startup send a status msg to all neighbors*/
+            for(j = 0; j<num_neighbors;j++){
+                peer_serv_addr.sin_family = AF_INET;
+                peer_serv_addr.sin_addr.s_addr = INADDR_ANY;
+                peer_serv_addr.sin_port = htons(neighbor_ports[j]);
+
+                fill_message(out_peer_msg_buf, STATUS, pid, pid, 0, vector_clock, msg_log[0], num_procs);
+
+                printf("Sending Intial status Message from UDP port: %d to port: %d\n ", udp_port, ntohs(peer_serv_addr.sin_port));
+                sendto(udp_socket, (const char *) out_peer_msg_buf, sizeof(struct message), MSG_DONTWAIT,
+                       (const struct sockaddr *) &peer_serv_addr, sizeof(peer_serv_addr));
+            }
+        }
         /* TODO: Align local_seqnum with vector clock.*/
+        if (vector_clock[pid] > local_seqnum){
+            local_seqnum = vector_clock[pid];
+            printf("updating local seqnum. Now equals%d\n", local_seqnum);
+
+        }
+        /*TODO: Anti entropy timer */
 
         if (num_msgs > MAX_MSGS){
             printf("Max Messages reached. Quitting\n");
@@ -205,11 +225,12 @@ int main(int argc , char *argv[])
                                          vector_clock, cmd_buf->msg, num_procs);
                             local_seqnum++;
 
-                            printf("Filled Message:\n");
+
+                            printf("Filled Rumor Message:\n");
                             print_message(out_peer_msg_buf, num_procs);
 
                             /* Send new message to nearby server */
-                            struct sockaddr_in peer_serv_addr;
+
                             peer_serv_addr.sin_family = AF_INET;
                             peer_serv_addr.sin_addr.s_addr = INADDR_ANY;
 
@@ -247,17 +268,8 @@ int main(int argc , char *argv[])
 
                     printf("Read %d bytes from udp. From socket %d, on port %d\n", n, udp_socket, ntohs(peer_serv_addr.sin_port));
 
-                    if (in_peer_msg_buf->type == 1){
-                        printf("Schmang\n");
-                    }
-                    else{
-                        printf("bang\n");
-                    }
                     enum message_type inc_type = in_peer_msg_buf->type;
                     printf("type %d\n", inc_type);
-                    if (inc_type == 1){
-                        printf("Schmang");
-                    }
 
                     if (inc_type == RUMOR){
 
@@ -314,6 +326,10 @@ int main(int argc , char *argv[])
 
                             printf("Next Message is server %d, message %d\n", next_msg[0], next_msg[1]);
                             msg_idx = search_for_message(msg_ids, num_msgs,next_msg[0],next_msg[1]);
+                            if (msg_idx == -1){
+                                printf("search failure");
+                                break;
+                            }
                             fill_message(out_peer_msg_buf, RUMOR, pid, next_msg[0], next_msg[1], vector_clock, msg_log[msg_idx], num_procs);
 
                             printf("Sending Message from UDP port: %d to port: %d\n ", udp_port, ntohs(peer_serv_addr.sin_port));
@@ -353,13 +369,12 @@ int main(int argc , char *argv[])
                         }
                         else{
                             /* Nothing to do.
-                             * flip a coin for more rumor mongering
+                             * TODO: flip a coin for more rumor mongering
                              * */
                             printf("Nothing to do\n");
 
                         }
                     }
-                    printf("after the if statement\n");
                 }
             }
         }

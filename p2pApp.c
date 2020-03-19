@@ -24,7 +24,6 @@ int parse_input(char *cmd_string, client_command *client_cmd){
         client_cmd ->cmd_type = MSG;
 
         token = strtok(NULL, " ");
-        printf("new token: %s\n", token);
 
         long m_id= strtol(token, NULL, 10);
         printf("Message ID: %ld\n",m_id);
@@ -135,11 +134,10 @@ void send_log(char **msg_log, size_t num_msg, char *chat_log){
     /*
      * Zero out old chatlog
      */
-    char *str[MAX_MSG_LEN];
     printf("parsing log to send\n");
     memset(chat_log, 0, sizeof(*chat_log));
     strcat(chat_log, "chatLog ");
-    int i,j, len;
+    int i, len;
 
     for(i =0; i<num_msg; i++){
         /* Remove newline if message has it */
@@ -280,6 +278,7 @@ int read_status_message(int *next_msg, message_t *msg, uint16_t *vector_clock, i
     for(j = 0; j<num_procs; j++){
         /* Check each peer's seqnum to determine if the status sender needs messages*/
         if (vector_clock[j]  > rcvd_status[j]){
+            printf("Server %d. We have %d, other has %d\n", j, vector_clock[j], rcvd_status[j]);
             /* If servere has a higher number, sender needs message.
              * Make msg to send first unread message and return immediately. */
 
@@ -309,30 +308,30 @@ int read_status_message(int *next_msg, message_t *msg, uint16_t *vector_clock, i
 void update_vector_clock(uint16_t * vector_clock, uint16_t **msg_ids, size_t num_msg,
                          uint16_t new_msg_server, int num_procs){
 
-//    printf("%d Total Messages. Updating vector clock for server %d:\n", num_msg, new_msg_server);
-//    print_vector_clock(vector_clock, num_procs);
+    printf("%d Total Messages. Updating vector clock for server %d:\n", num_msg, new_msg_server);
+    print_vector_clock(vector_clock, num_procs);
 
-    uint16_t *temp[MAX_MSGS+1];
+    uint16_t temp[MAX_MSGS+1];
     int count = 0;
-    memset(temp, 0, sizeof(*temp));
+    memset(temp, 0, sizeof(temp));
 
     int i;
     for (i = 0; i<num_msg; i++) {
 
-//        printf("Message %d. From: %d. seqnum: %d\n", i, msg_ids[i][0], msg_ids[i][1]);
+        printf("Message %d. From: %d. seqnum: %d\n", i, msg_ids[i][0], msg_ids[i][1]);
 
         if (msg_ids[i][0] == new_msg_server) {
 
-//            printf("Found a message_t on server %d, seq_num %d\n",new_msg_server, msg_ids[i][1]);
-//            printf("Setting temp %d\n",msg_ids[i][1]-1);
+            printf("Found a message_t on server %d, seq_num %d\n",new_msg_server, msg_ids[i][1]);
+            printf("Setting temp %d\n",msg_ids[i][1]-1);
             temp[msg_ids[i][1]-1] = TRUE;
             count++;
         }
     }
     for (i = 0; i<count+1; i++){
-//        printf("Temp %d: %d",i, temp[i]);
-        if (temp[i]!=TRUE){
-//            printf("Found first zero at index: %d\n", i);
+        printf("Temp %d: %d",i, temp[i]);
+        if (temp[i]==FALSE){
+            printf("Found first zero at index: %d\n", i);
             break;
         }
     }
