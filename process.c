@@ -313,7 +313,14 @@ int main(int argc , char *argv[])
                         break;
                     }
 
-                    printf("Read %d bytes from udp\n", n);
+                    printf("Read %d bytes from udp. Message is: \n", n);
+                    print_message(in_peer_msg_buf, num_procs);
+
+                    // TODO: Figure out why it is stalling here.
+                    printf('bloop\n');
+
+                    enum message_type inc_type = in_peer_msg_buf->type;
+                    printf("type %d\n", inc_type);
 
 
 
@@ -387,9 +394,9 @@ int main(int argc , char *argv[])
 
 
                     }
-                    else if(in_peer_msg_buf->type = RUMOR){
+                    else if(in_peer_msg_buf->type == RUMOR){
 
-                        printf(" Rumor Message Received from server %s\n", in_peer_msg_buf->from);
+                        printf(" Rumor Message Received from server %d\n", in_peer_msg_buf->from);
                         printf("Message received:\n");
                         print_message(in_peer_msg_buf, num_procs);
 
@@ -424,6 +431,9 @@ int main(int argc , char *argv[])
                         sendto(udp_socket, (const char *) out_peer_msg_buf, sizeof(struct message), MSG_DONTWAIT,
                                (const struct sockaddr *) &peer_serv_addr, sizeof(peer_serv_addr));
                         printf("Ack message sent on UDP.\n\n");
+                    }
+                    else{
+                        printf("Message type is weird. %d\n", in_peer_msg_buf->type);
                     }
 //                    print_message(in_peer_msg_buf,num_procs);
 //                    udp_buffer[n] = '\0';

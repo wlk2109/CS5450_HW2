@@ -366,7 +366,7 @@ void print_vector_clock(uint16_t *vector_clock, int num_procs){
     for (i = 0; i<num_procs; i++){
         printf("Server: %d. Next Seqnum: %d\n",i,vector_clock[i]);
     }
-    printf("\n");
+    printf("Done \n");
 }
 
 void print_message(message_t *msg, int num_procs){
