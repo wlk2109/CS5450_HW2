@@ -1,3 +1,6 @@
 1. TCP not available, some sort of fd_set error
 2. Do we need to deal with malformed commands?
-3. Sending the same message multiple times (are we sure the message seq numbers are correct) 
+3. Sending the same message multiple times (are we sure the message seq numbers are correct)
+4. Crash a server that has sent messages. Server sends message again before getting gossip.
+    Internal consistency error for seqnum.
+    - On startup

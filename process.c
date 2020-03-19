@@ -57,18 +57,6 @@ int main(int argc , char *argv[])
         vector_clock[i] = (uint16_t) 1;
     }
 
-    /*** TESTING ***/
-//    if (pid == 0) {
-//        char fake_cmd[250];
-//        strcpy(fake_cmd, "ShartlogInYoAss");
-//        num_msgs += add_new_message(fake_cmd, pid, local_seqnum, msg_log,
-//                                    num_msgs, msg_ids, vector_clock, num_procs);
-//        local_seqnum++;}
-
-    /*** END TESTING ***/
-
-
-
     /*Create a TCP socket*/
     if ((tcp_socket = socket(AF_INET, SOCK_STREAM, 0)) < 0) {
         printf("TCP Socket failed");
@@ -119,7 +107,6 @@ int main(int argc , char *argv[])
 
     if (status == -1){
         perror("calling fcntl");
-        // handle the error.  By the way, I've never seen fcntl fail in this way
     }
 
     /*inform user of socket number - used in send and receive commands*/
@@ -134,7 +121,6 @@ int main(int argc , char *argv[])
     }
     printf("Server %d , UDP socket on port: %d\n", pid, ntohs(udp_address.sin_port));
 
-
     /* Get P2P Ports to send on*/
     num_neighbors = init_neighbors(pid, num_procs, potential_neighbors);
     printf("Process %d has %d neighbors\n",pid,num_neighbors);
@@ -143,22 +129,19 @@ int main(int argc , char *argv[])
     int neighbor_ports[num_neighbors];
     get_neighbor_ports(pid, num_procs, neighbor_ports);
 
-//    /* Initialize the set of active sockets. */
-//    FD_ZERO (&active_fd_set);
-//    FD_SET (new_tcp_socket, &active_fd_set);
-//    FD_SET(udp_socket, &active_fd_set);
-
     printf("SERVER STARTED AND WAITING!\n\n");
 
     while(active == TRUE) {
+        /* TODO: send status message to neighbors */
+        /* TODO: Align local_seqnum with vector clock.*/
+
         if (num_msgs > MAX_MSGS){
             printf("Max Messages reached. Quitting\n");
             break;
         }
-        printf("Top of While Loop\n\n");
 
         /* Block until input arrives on one or more active sockets. */
-        //read_fd_set = active_fd_set;
+        /*read_fd_set = active_fd_set;*/
 
         /* Initialize the set of active sockets. */
         FD_ZERO (&active_fd_set);
@@ -232,7 +215,7 @@ int main(int argc , char *argv[])
 
                             neighbor_index = pick_neighbor(num_neighbors);
 
-                            //printf("selected Neghbor number %d\n",i);
+                            //printf("selected Neighbor number %d\n",i);
                             peer_serv_addr.sin_port = htons(neighbor_ports[neighbor_index]);
 
                             printf("Sending Message to neighbor on UDP port: %d to port: %d\n ", udp_port,
@@ -251,7 +234,6 @@ int main(int argc , char *argv[])
 
                     struct sockaddr_in peer_serv_addr;
                     memset(&peer_serv_addr, 0, sizeof(peer_serv_addr));
-                    char udp_buffer[1024];
                     int n, stat, msg_idx;
                     socklen_t len;
 
@@ -264,15 +246,7 @@ int main(int argc , char *argv[])
 
 
                     printf("Read %d bytes from udp. From socket %d, on port %d\n", n, udp_socket, ntohs(peer_serv_addr.sin_port));
-//                    printf("Read %d bytes from udp. Message is: \n", n);
-//
-//                    perror("is there an error?");
-//                    printf("Read %d bytes from udp. Message is: \n", n);
 
-//                    print_message(in_peer_msg_buf, num_procs);
-//
-//                    printf('bloop\n');
-//
                     if (in_peer_msg_buf->type == 1){
                         printf("Schmang\n");
                     }
@@ -334,7 +308,6 @@ int main(int argc , char *argv[])
                             j = get_neighbor_port_idx(in_peer_msg_buf->from, pid, num_neighbors);
                             printf("Neigher idx is: %d\n", j);
 
-//                            struct sockaddr_in peer_serv_addr;
                             peer_serv_addr.sin_family = AF_INET;
                             peer_serv_addr.sin_addr.s_addr = INADDR_ANY;
                             peer_serv_addr.sin_port = htons(neighbor_ports[j]);
@@ -363,7 +336,6 @@ int main(int argc , char *argv[])
                             j = get_neighbor_port_idx(in_peer_msg_buf->from, pid, num_neighbors);
                             printf("Neigher idx is: %d\n", j);
 
-//                            struct sockaddr_in peer_serv_addr;
                             peer_serv_addr.sin_family = AF_INET;
                             peer_serv_addr.sin_addr.s_addr = INADDR_ANY;
                             peer_serv_addr.sin_port = htons(neighbor_ports[j]);
@@ -388,10 +360,6 @@ int main(int argc , char *argv[])
                         }
                     }
                     printf("after the if statement\n");
-
-//                    print_message(in_peer_msg_buf,num_procs);
-//                    udp_buffer[n] = '\0';
-//                    printf("Client : %s\n", udp_buffer);
                 }
             }
         }
@@ -403,9 +371,12 @@ int main(int argc , char *argv[])
     free(out_peer_msg_buf);
     free(in_peer_msg_buf);
     for (i =0; i<num_msgs; i++){
+        printf("freeing msg %d\n", i);
         free(msg_log[i]);
+        printf("freeing id %d\n", i);
         free(msg_ids[i]);
     }
+    printf("freeing logs");
     free(msg_log);
     free(msg_ids);
 }
