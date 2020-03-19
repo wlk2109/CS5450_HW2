@@ -57,21 +57,22 @@ int main(int argc , char *argv[])
         vector_clock[i] = (uint16_t) 1;
     }
 
-    /*** TESTING ***/
-    if (pid == 0) {
-        char fake_cmd[250];
-        strcpy(fake_cmd, "ShartlogInYoAss");
-        num_msgs += add_new_message(fake_cmd, pid, local_seqnum, msg_log,
-                                    num_msgs, msg_ids, vector_clock, num_procs);
-        local_seqnum++;
-        num_msgs += add_new_message(fake_cmd, pid, local_seqnum, msg_log,
-                                    num_msgs, msg_ids, vector_clock, num_procs);
-        local_seqnum++;
+//    /*** TESTING ***/
+//    if (pid == 0) {
+//        char fake_cmd[250];
+//        strcpy(fake_cmd, "ShartlogInYoAss");
+//        num_msgs += add_new_message(fake_cmd, pid, local_seqnum, msg_log,
+//                                    num_msgs, msg_ids, vector_clock, num_procs);
+//        local_seqnum++;
+//        num_msgs += add_new_message(fake_cmd, pid, local_seqnum, msg_log,
+//                                                           num_msgs, msg_ids, vector_clock, num_procs);
+//    perror("TESTING");
 //        num_msgs += add_new_message(fake_cmd, pid, local_seqnum, msg_log,
 //                                    num_msgs, msg_ids, vector_clock, num_procs);
 //        local_seqnum++;
 //        search_for_message(msg_ids, num_msgs, 0, 2);
-    }
+
+//    }
 //    send_log(msg_log, num_msgs, chat_log_out);
 //    printf("Filled Chatlog: %s\n", chat_log_out);
 
@@ -319,6 +320,10 @@ int main(int argc , char *argv[])
 
                     printf("Read %d bytes from udp\n", n);
 //                    printf("Read %d bytes from udp. Message is: \n", n);
+//
+//                    perror("is there an error?");
+//                    printf("Read %d bytes from udp. Message is: \n", n);
+
 //                    print_message(in_peer_msg_buf, num_procs);
 //
 //                    printf('bloop\n');
