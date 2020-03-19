@@ -193,7 +193,7 @@ int main(int argc , char *argv[])
                         close( new_tcp_socket );
                     }
                     else if(valread == -1){
-                        perror("TCP Read Error");
+                        perror("TCP Read Errors");
                     }
                     else {
                         buffer[valread] = '\0';
