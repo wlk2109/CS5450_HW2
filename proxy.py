@@ -96,7 +96,7 @@ def exit(exit=False):
     sys.exit(0)
 
 def timeout():
-    time.sleep(120)
+    time.sleep(180)
     exit(True)
 
 def main():
