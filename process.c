@@ -58,15 +58,15 @@ int main(int argc , char *argv[])
     }
 
     /*** TESTING ***/
-//    if (pid == 0) {
-//        char fake_cmd[250];
-//        strcpy(fake_cmd, "ShartlogInYoAss");
-//        num_msgs += add_new_message(fake_cmd, pid, local_seqnum, msg_log,
-//                                    num_msgs, msg_ids, vector_clock, num_procs);
-//        local_seqnum++;
-//        num_msgs += add_new_message(fake_cmd, pid, local_seqnum, msg_log,
-//                                                           num_msgs, msg_ids, vector_clock, num_procs);
-//        local_seqnum++;
+    if (pid == 0) {
+        char fake_cmd[250];
+        strcpy(fake_cmd, "ShartlogInYoAss");
+        num_msgs += add_new_message(fake_cmd, pid, local_seqnum, msg_log,
+                                    num_msgs, msg_ids, vector_clock, num_procs);
+        local_seqnum++;
+        num_msgs += add_new_message(fake_cmd, pid, local_seqnum, msg_log,
+                                                           num_msgs, msg_ids, vector_clock, num_procs);
+        local_seqnum++;}
 ////        num_msgs += add_new_message(fake_cmd, pid, local_seqnum, msg_log,
 ////                                    num_msgs, msg_ids, vector_clock, num_procs);
 ////        local_seqnum++;
@@ -267,12 +267,8 @@ int main(int argc , char *argv[])
 
                             num_msgs += add_new_message(cmd_buf->msg, pid, local_seqnum, msg_log,
                                                         num_msgs, msg_ids, vector_clock, num_procs);
-//                            fill_message(out_peer_msg_buf, RUMOR, pid, pid, local_seqnum,
-//                                         vector_clock, cmd_buf->msg, num_procs);
-                            fill_message(out_peer_msg_buf, STATUS, pid, pid, local_seqnum,
+                            fill_message(out_peer_msg_buf, RUMOR, pid, pid, local_seqnum,
                                          vector_clock, cmd_buf->msg, num_procs);
-
-
                             local_seqnum++;
 
                             //printf("Filled Message:\n");
@@ -342,6 +338,9 @@ int main(int argc , char *argv[])
                             msg_idx = search_for_message(msg_ids, num_msgs,next_msg[0],next_msg[1]);
                             fill_message(out_peer_msg_buf, RUMOR, pid, next_msg[0], next_msg[1], vector_clock, msg_log[msg_idx], num_procs);
 
+                            printf("Filled Message\n:");
+                            print_message(out_peer_msg_buf, num_procs);
+
                             printf("Sending Message from UDP port: %d to port: %d\n ", udp_port, ntohs(peer_serv_addr.sin_port));
 
                             /* Send new message to nearby server */
@@ -391,6 +390,8 @@ int main(int argc , char *argv[])
                     else if(in_peer_msg_buf->type = RUMOR){
 
                         printf(" Rumor Message Received from server %s\n", in_peer_msg_buf->from);
+                        printf("Message received:\n");
+                        print_message(in_peer_msg_buf, num_procs);
 
                         j = update_log(in_peer_msg_buf, msg_log, num_msgs, msg_ids, vector_clock, num_procs);
                         num_msgs+=j;

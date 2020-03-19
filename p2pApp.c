@@ -199,8 +199,7 @@ size_t update_log(message_t *msg, char **msg_log, size_t num_msg, uint16_t **msg
     msg_id[0] = msg->origin;
     msg_id[1] = msg->seqnum;
 
-
-    //printf("Copied message_t: %s. From: %d. seqnum: %d\n",msg_text,msg_id[0], msg_id[1]);
+    printf("Copied message_t: %s. From: %d. seqnum: %d\n",msg_text,msg_id[0], msg_id[1]);
 
 
     /* add the pointers to the cache. */
@@ -305,35 +304,35 @@ int read_status_message(int *next_msg, message_t *msg, uint16_t *vector_clock, i
 void update_vector_clock(uint16_t * vector_clock, uint16_t **msg_ids, size_t num_msg,
         uint16_t new_msg_server, int num_procs){
 
-//    printf("%d Total Messages. Updating vector clock for server %d:\n", num_msg, new_msg_server);
-//    print_vector_clock(vector_clock, num_procs);
+    printf("%d Total Messages. Updating vector clock for server %d:\n", num_msg, new_msg_server);
+    print_vector_clock(vector_clock, num_procs);
 
     uint16_t *temp[MAX_MSGS+1];
     int count = 0;
-    memset(temp, 0, sizeof(*temp));
+    memset(temp, (uint16_t)0, sizeof(*temp));
 
     int i;
     for (i = 0; i<num_msg; i++) {
 
-//        printf("Message %d. From: %d. seqnum: %d\n", i, msg_ids[i][0], msg_ids[i][1]);
+        printf("Message %d. From: %d. seqnum: %d\n", i, msg_ids[i][0], msg_ids[i][1]);
 
         if (msg_ids[i][0] == new_msg_server) {
 
-//            printf("Found a message_t on server %d, seq_num %d\n",new_msg_server, msg_ids[i][1]);
-//            printf("Setting temp %d\n",msg_ids[i][1]-1);
+            printf("Found a message_t on server %d, seq_num %d\n",new_msg_server, msg_ids[i][1]);
+            printf("Setting temp %d\n",msg_ids[i][1]-1);
             temp[msg_ids[i][1]-1] = TRUE;
             count++;
         }
     }
     for (i = 0; i<count+1; i++){
-//        printf("Temp %d: %d",i, temp[i]);
+        printf("Temp %d: %d\n",i, temp[i]);
         if (temp[i]!=TRUE){
-//            printf("Found first zero at index: %d\n", i);
+            printf("Found first zero at index: %d\n", i);
             break;
         }
     }
 
-    vector_clock[new_msg_server] = i;
+    vector_clock[new_msg_server] = i+1;
 
     printf("New Vector Clock:\n");
     print_vector_clock(vector_clock, num_procs);
