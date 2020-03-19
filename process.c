@@ -58,20 +58,20 @@ int main(int argc , char *argv[])
     }
 
     /*** TESTING ***/
-    if (pid == 0) {
-        char fake_cmd[250];
-        strcpy(fake_cmd, "ShartlogInYoAss");
-        num_msgs += add_new_message(fake_cmd, pid, local_seqnum, msg_log,
-                                    num_msgs, msg_ids, vector_clock, num_procs);
-        local_seqnum++;
-        num_msgs += add_new_message(fake_cmd, pid, local_seqnum, msg_log,
-                                                           num_msgs, msg_ids, vector_clock, num_procs);
-        local_seqnum++;
+//    if (pid == 0) {
+//        char fake_cmd[250];
+//        strcpy(fake_cmd, "ShartlogInYoAss");
 //        num_msgs += add_new_message(fake_cmd, pid, local_seqnum, msg_log,
 //                                    num_msgs, msg_ids, vector_clock, num_procs);
 //        local_seqnum++;
-//        search_for_message(msg_ids, num_msgs, 0, 2);
-    }
+//        num_msgs += add_new_message(fake_cmd, pid, local_seqnum, msg_log,
+//                                                           num_msgs, msg_ids, vector_clock, num_procs);
+//        local_seqnum++;
+////        num_msgs += add_new_message(fake_cmd, pid, local_seqnum, msg_log,
+////                                    num_msgs, msg_ids, vector_clock, num_procs);
+////        local_seqnum++;
+////        search_for_message(msg_ids, num_msgs, 0, 2);
+//    }
 //    send_log(msg_log, num_msgs, chat_log_out);
 //    printf("Filled Chatlog: %s\n", chat_log_out);
 
@@ -384,7 +384,7 @@ int main(int argc , char *argv[])
 
                         printf(" Rumor Message Received from server %s\n", in_peer_msg_buf->from);
 
-                        j = update_log(in_peer_msg_buf, msg_log, num_msgs, msg_ids, vector_clock, num_procs;
+                        j = update_log(in_peer_msg_buf, msg_log, num_msgs, msg_ids, vector_clock, num_procs);
                         num_msgs+=j;
 
                         /* New Message: */
