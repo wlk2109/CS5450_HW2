@@ -68,7 +68,7 @@ size_t update_log(message_t *msg, char **msg_log, size_t num_msg, uint16_t **msg
                   uint16_t *vector_clock, int num_procs);
 int search_for_message(uint16_t **msg_ids, size_t num_msg, uint16_t tar_server, uint16_t tar_seqnum);
 void update_vector_clock(uint16_t * vector_clock, uint16_t **msg_ids, size_t num_msg,
-        uint16_t new_msg_server, int num_procs);
+                         uint16_t new_msg_server, int num_procs);
 void print_vector_clock(uint16_t *vector_clock, int num_procs);
 void print_message(message_t *msg, int num_procs);
 void fill_message(message_t *msg_buff, enum message_type type, uint16_t server_pid, uint16_t origin_pid,
