@@ -309,7 +309,7 @@ void update_vector_clock(uint16_t * vector_clock, uint16_t **msg_ids, size_t num
 
     uint16_t *temp[MAX_MSGS+1];
     int count = 0;
-    memset(temp, (uint16_t)0, sizeof(*temp));
+    memset(temp, 0, sizeof(*temp));
 
     int i;
     for (i = 0; i<num_msg; i++) {
@@ -367,6 +367,7 @@ void print_vector_clock(uint16_t *vector_clock, int num_procs){
         printf("Server: %d. Next Seqnum: %d\n",i,vector_clock[i]);
     }
     printf("Done \n");
+    return;
 }
 
 void print_message(message_t *msg, int num_procs){
@@ -377,6 +378,7 @@ void print_message(message_t *msg, int num_procs){
            "message_t contents: %s\n", msg->type, msg->origin, msg->from,msg->seqnum, msg->msg);
     printf(" Status vector from message_t:\n");
     print_vector_clock(msg->vector_clock, num_procs);
+    printf("Done with vector clock\n");
     return;
 }
 

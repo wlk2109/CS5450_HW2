@@ -24,7 +24,7 @@ int main(int argc , char *argv[])
     struct sockaddr_in client_address;
     struct sockaddr_in tcp_address;
     struct sockaddr_in udp_address;
-    int tcp_socket, new_tcp_socket, udp_socket, i,j,neighbor_index, cmd_type, num_neighbors, valread;
+    int tcp_socket, new_tcp_socket, udp_socket, i,j, cmd_type, num_neighbors, valread;
     int active = TRUE;
     fd_set active_fd_set, read_fd_set;
 
@@ -267,7 +267,7 @@ int main(int argc , char *argv[])
 
                             num_msgs += add_new_message(cmd_buf->msg, pid, local_seqnum, msg_log,
                                                         num_msgs, msg_ids, vector_clock, num_procs);
-                            fill_message(out_peer_msg_buf, RUMOR, pid, pid, local_seqnum,
+                            fill_message(out_peer_msg_buf, STATUS, pid, pid, local_seqnum,
                                          vector_clock, cmd_buf->msg, num_procs);
                             local_seqnum++;
 
@@ -280,10 +280,10 @@ int main(int argc , char *argv[])
                             peer_serv_addr.sin_family = AF_INET;
                             peer_serv_addr.sin_addr.s_addr = INADDR_ANY;
 
-                            neighbor_index = pick_neighbor(num_neighbors);
+                            j = pick_neighbor(num_neighbors);
 
                             //printf("selected Neghbor number %d\n",i);
-                            peer_serv_addr.sin_port = htons(neighbor_ports[neighbor_index]);
+                            peer_serv_addr.sin_port = htons(neighbor_ports[j]);
 
                             printf("Sending Message to neighbor on UDP port: %d to port: %d\n ", udp_port,
                                    ntohs(peer_serv_addr.sin_port));
@@ -314,13 +314,16 @@ int main(int argc , char *argv[])
                     }
 
                     printf("Read %d bytes from udp. Message is: \n", n);
-                    print_message(in_peer_msg_buf, num_procs);
-
+//                    print_message(in_peer_msg_buf, num_procs);
+                    perror("HELP");
                     // TODO: Figure out why it is stalling here.
                     printf('bloop\n');
+                    fflush(stdout);
 
                     enum message_type inc_type = in_peer_msg_buf->type;
                     printf("type %d\n", inc_type);
+                    fflush(stdout);
+
 
 
 
