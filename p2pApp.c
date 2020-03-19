@@ -9,7 +9,11 @@
  *
  */
 int parse_input(char *cmd_string, client_command *client_cmd){
-
+    if (strcmp(cmd_string, "crash\n")==0){
+        printf("crash\n");
+        client_cmd->cmd_type=CRASH;
+        return CRASH;
+    }
     printf("parse_input - Incoming: %s\n", cmd_string);
 
     char* token = strtok(cmd_string, " ");
@@ -42,11 +46,6 @@ int parse_input(char *cmd_string, client_command *client_cmd){
         printf("get request\n");
         client_cmd->cmd_type = GET;
         return GET;
-    }
-    else if (strcmp(token, "crash")==0){
-        printf("crash\n");
-        client_cmd->cmd_type=CRASH;
-        return CRASH;
     }
     else{
         perror("Incorrect command type");

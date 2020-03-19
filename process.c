@@ -283,6 +283,22 @@ int main(int argc , char *argv[])
                             if(num_neighbors > 1) {
                                 /* Resend Rumor to random neighbor if it is a new message*/
                                 printf("I have more neighbors. Resend rumor here.\n");
+                                j = get_neighbor_port_idx(in_peer_msg_buf->from, pid, num_neighbors);
+                                printf("I got a new message from %d\n",j);
+                                j = 1 -j;
+                                printf("now i am sending it to %d\n", j);
+
+                                peer_serv_addr.sin_family = AF_INET;
+                                peer_serv_addr.sin_addr.s_addr = INADDR_ANY;
+                                peer_serv_addr.sin_port = htons(neighbor_ports[j]);
+
+                                fill_message(out_peer_msg_buf, STATUS, pid, pid, 0, vector_clock, msg_log[0], num_procs);
+
+                                printf("Sending Message from UDP port: %d to port: %d\n ", udp_port, ntohs(peer_serv_addr.sin_port));
+
+                                /* Send new message to nearby server */
+                                sendto(udp_socket, (const char *) out_peer_msg_buf, sizeof(struct message), MSG_DONTWAIT,
+                                       (const struct sockaddr *) &peer_serv_addr, sizeof(peer_serv_addr));
                             }
                         }
 
@@ -368,11 +384,29 @@ int main(int argc , char *argv[])
 
                         }
                         else{
-                            /* Nothing to do.
-                             * TODO: flip a coin for more rumor mongering
-                             * */
-                            printf("Nothing to do\n");
+                            if(num_neighbors == 1){
+                                printf("Nothing to do, no more neighbors.\n");
 
+                            }
+                            else if (rand()%2 == HEADS){
+                                /*Send the message to another neighbor! */
+                                j = get_neighbor_port_idx(in_peer_msg_buf->from, pid, num_neighbors);
+                                printf("I used to be rumormongering with %d\n",j);
+                                j = 1 -j;
+                                printf("now i am rumormongering with %d\n",j);
+
+                                peer_serv_addr.sin_family = AF_INET;
+                                peer_serv_addr.sin_addr.s_addr = INADDR_ANY;
+                                peer_serv_addr.sin_port = htons(neighbor_ports[j]);
+
+                                fill_message(out_peer_msg_buf, STATUS, pid, pid, 0, vector_clock, msg_log[0], num_procs);
+
+                                printf("Sending Message from UDP port: %d to port: %d\n ", udp_port, ntohs(peer_serv_addr.sin_port));
+
+                                /* Send new message to nearby server */
+                                sendto(udp_socket, (const char *) out_peer_msg_buf, sizeof(struct message), MSG_DONTWAIT,
+                                       (const struct sockaddr *) &peer_serv_addr, sizeof(peer_serv_addr));
+                            }
                         }
                     }
                 }
