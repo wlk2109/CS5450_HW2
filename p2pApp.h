@@ -59,9 +59,7 @@ typedef struct client_command{
 /*--- Functions ---*/
 int parse_input(char *cmd_string, struct client_command *client_cmd);
 void process_cmd(struct client_command *client_cmd, char **msg_log, uint16_t *vector_clock);
-int crash();
-void exit();
-void send_msg();
+
 void send_log(char **msg_log, size_t num_msg, char *chat_log);
 size_t update_log(message_t *msg, char **msg_log, size_t num_msg, uint16_t **msg_ids,
                   uint16_t *vector_clock, int num_procs);
