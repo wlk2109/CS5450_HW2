@@ -284,9 +284,7 @@ int main(int argc , char *argv[])
                                 /* Resend Rumor to random neighbor if it is a new message*/
                                 printf("I have more neighbors. Resend rumor here.\n");
                                 j = get_neighbor_port_idx(in_peer_msg_buf->from, pid, num_neighbors);
-                                printf("I got a new message from %d\n",j);
                                 j = 1 -j;
-                                printf("now i am sending it to %d\n", j);
 
                                 peer_serv_addr.sin_family = AF_INET;
                                 peer_serv_addr.sin_addr.s_addr = INADDR_ANY;
@@ -304,10 +302,7 @@ int main(int argc , char *argv[])
 
                         /* Any Rumor message. Send an Ack*/
 
-                        printf("Message is from server: %d, pid is %d. difference is %d\n",in_peer_msg_buf->from, pid, in_peer_msg_buf->from - pid);
                         j = get_neighbor_port_idx(in_peer_msg_buf->from, pid, num_neighbors);
-                        printf("Neigher idx is: %d\n", j);
-
                         peer_serv_addr.sin_family = AF_INET;
                         peer_serv_addr.sin_addr.s_addr = INADDR_ANY;
                         peer_serv_addr.sin_port = htons(neighbor_ports[j]);
@@ -332,9 +327,7 @@ int main(int argc , char *argv[])
                             /* We have messages to send*/
                             /* send the next message back to that guy.*/
 
-                            printf("Message is from server: %d, pid is %d. difference is %d\n",in_peer_msg_buf->from, pid, in_peer_msg_buf->from - pid);
                             j = get_neighbor_port_idx(in_peer_msg_buf->from, pid, num_neighbors);
-                            printf("Neigher idx is: %d\n", j);
 
                             peer_serv_addr.sin_family = AF_INET;
                             peer_serv_addr.sin_addr.s_addr = INADDR_ANY;
@@ -391,9 +384,7 @@ int main(int argc , char *argv[])
                             else if (rand()%2 == HEADS){
                                 /*Send the message to another neighbor! */
                                 j = get_neighbor_port_idx(in_peer_msg_buf->from, pid, num_neighbors);
-                                printf("I used to be rumormongering with %d\n",j);
                                 j = 1 -j;
-                                printf("now i am rumormongering with %d\n",j);
 
                                 peer_serv_addr.sin_family = AF_INET;
                                 peer_serv_addr.sin_addr.s_addr = INADDR_ANY;
@@ -420,12 +411,9 @@ int main(int argc , char *argv[])
     free(out_peer_msg_buf);
     free(in_peer_msg_buf);
     for (i =0; i<num_msgs; i++){
-        printf("freeing msg %d\n", i);
         free(msg_log[i]);
-        printf("freeing id %d\n", i);
         free(msg_ids[i]);
     }
-    printf("freeing logs");
     free(msg_log);
     free(msg_ids);
 }

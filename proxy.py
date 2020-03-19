@@ -19,6 +19,8 @@ wait_chat_log = False
 
 started_processes = {}
 
+processes = {}
+
 debug = False
 
 class ClientHandler(Thread):
@@ -96,7 +98,7 @@ def exit(exit=False):
     sys.exit(0)
 
 def timeout():
-    time.sleep(180)
+    time.sleep(120)
     exit(True)
 
 def main():
@@ -133,9 +135,10 @@ def main():
                 time.sleep(2)
             # start the process
             if debug:
-                subprocess.Popen(['./process', str(pid), sp2[2], sp2[3]])
+                proc = subprocess.Popen(['./process', str(pid), sp2[2], sp2[3]])
             else:
-                subprocess.Popen(['./process', str(pid), sp2[2], sp2[3]], stdout=sys.stdout, stderr=sys.stdout)
+                proc = subprocess.Popen(['./process', str(pid), sp2[2], sp2[3]], stdout=sys.stdout, stderr=sys.stdout)
+            processes[pid] = proc
             # sleep for a while to allow the process be ready
             time.sleep(1)
             # connect to the port of the pid
