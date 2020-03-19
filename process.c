@@ -267,8 +267,12 @@ int main(int argc , char *argv[])
 
                             num_msgs += add_new_message(cmd_buf->msg, pid, local_seqnum, msg_log,
                                                         num_msgs, msg_ids, vector_clock, num_procs);
-                            fill_message(out_peer_msg_buf, RUMOR, pid, pid, local_seqnum,
+//                            fill_message(out_peer_msg_buf, RUMOR, pid, pid, local_seqnum,
+//                                         vector_clock, cmd_buf->msg, num_procs);
+                            fill_message(out_peer_msg_buf, STATUS, pid, pid, local_seqnum,
                                          vector_clock, cmd_buf->msg, num_procs);
+
+
                             local_seqnum++;
 
                             //printf("Filled Message:\n");
@@ -324,10 +328,12 @@ int main(int argc , char *argv[])
                         if ((stat = read_status_message(next_msg, in_peer_msg_buf, vector_clock, num_procs)) == 1){
                             /* We have messages to send*/
                             /* send the next message back to that guy.*/
+
                             printf("Message is from server: %d, pid is %d. difference is %d\n",in_peer_msg_buf->from, pid, in_peer_msg_buf->from - pid);
-                            j = fmax(0, (int)in_peer_msg_buf->from - pid);
+                            j = get_neighbor_port_idx(in_peer_msg_buf->from, pid, num_neighbors);
                             printf("Neigher idx is: %d\n", j);
-                            struct sockaddr_in peer_serv_addr;
+
+//                            struct sockaddr_in peer_serv_addr;
                             peer_serv_addr.sin_family = AF_INET;
                             peer_serv_addr.sin_addr.s_addr = INADDR_ANY;
                             peer_serv_addr.sin_port = htons(neighbor_ports[j]);
@@ -351,10 +357,12 @@ int main(int argc , char *argv[])
                              * */
 
                             printf("I need msgs\n");
+
                             printf("Message is from server: %d, pid is %d. difference is %d\n",in_peer_msg_buf->from, pid, in_peer_msg_buf->from - pid);
-                            j = fmax(0, (int)in_peer_msg_buf->from - pid);
+                            j = get_neighbor_port_idx(in_peer_msg_buf->from, pid, num_neighbors);
                             printf("Neigher idx is: %d\n", j);
-                            struct sockaddr_in peer_serv_addr;
+
+//                            struct sockaddr_in peer_serv_addr;
                             peer_serv_addr.sin_family = AF_INET;
                             peer_serv_addr.sin_addr.s_addr = INADDR_ANY;
                             peer_serv_addr.sin_port = htons(neighbor_ports[j]);
@@ -384,7 +392,7 @@ int main(int argc , char *argv[])
 
                         printf(" Rumor Message Received from server %s\n", in_peer_msg_buf->from);
 
-                        j = update_log(in_peer_msg_buf, msg_log, num_msgs, msg_ids, vector_clock, num_procs;
+                        j = update_log(in_peer_msg_buf, msg_log, num_msgs, msg_ids, vector_clock, num_procs);
                         num_msgs+=j;
 
                         /* New Message: */
@@ -398,8 +406,7 @@ int main(int argc , char *argv[])
                         /* Any Rumor message. Send an Ack*/
 
                         printf("Message is from server: %d, pid is %d. difference is %d\n",in_peer_msg_buf->from, pid, in_peer_msg_buf->from - pid);
-
-                        j = fmax(0, (int)in_peer_msg_buf->from - pid);
+                        j = get_neighbor_port_idx(in_peer_msg_buf->from, pid, num_neighbors);
                         printf("Neigher idx is: %d\n", j);
 
                         peer_serv_addr.sin_family = AF_INET;

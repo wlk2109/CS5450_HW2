@@ -94,6 +94,12 @@ void get_neighbor_ports(int pid, int num_procs, int neighbor_ports[]) {
     }
 }
 
+int get_neighbor_port_idx(uint16_t neighbor_pid, uint16_t server_pid, int num_neighbors){
+    if (num_neighbors ==1){
+        return 0;
+    }else{return fmax(0, (int)neighbor_pid - server_pid);}
+}
+
 /*
  * Process a command.
  * Based on command type, do the thing.
@@ -320,14 +326,14 @@ void update_vector_clock(uint16_t * vector_clock, uint16_t **msg_ids, size_t num
         }
     }
     for (i = 0; i<count+1; i++){
-        printf("Temp %d: %d",i, temp[i]);
+//        printf("Temp %d: %d",i, temp[i]);
         if (temp[i]!=TRUE){
 //            printf("Found first zero at index: %d\n", i);
             break;
         }
     }
 
-    vector_clock[new_msg_server] = i+1;
+    vector_clock[new_msg_server] = i;
 
     printf("New Vector Clock:\n");
     print_vector_clock(vector_clock, num_procs);
@@ -339,18 +345,17 @@ void update_vector_clock(uint16_t * vector_clock, uint16_t **msg_ids, size_t num
  */
 void fill_message(message_t *msg_buff, enum message_type type, uint16_t server_pid,uint16_t origin_pid,
                   uint16_t seqnum, uint16_t *vector_clock, char *msg, int num_procs){
-
     msg_buff->seqnum = seqnum;
     msg_buff->type = type;
-    msg_buff->message_len = strlen(msg);
     msg_buff->origin = origin_pid;
     msg_buff->from = server_pid;
     memcpy(msg_buff->vector_clock, vector_clock, sizeof(vector_clock[0])*MAX_MSG_LEN);
-
     if (type == STATUS){
-        memset(msg_buff->msg, 0, MAX_MSG_LEN);
+        msg_buff->message_len = 0;
+        memset(msg_buff->msg, '\0', MAX_MSG_LEN);
     }
     else{
+        msg_buff->message_len = strlen(msg);
         strcpy(msg_buff->msg, msg);
     }
 
