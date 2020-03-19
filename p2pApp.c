@@ -142,8 +142,12 @@ void send_log(char **msg_log, size_t num_msg, char *chat_log){
     int i,j, len;
 
     for(i =0; i<num_msg; i++){
+        /* Remove newline if message has it */
         char *curr_msg = msg_log[i];
-        curr_msg[strlen(curr_msg)-1] = 0;
+        len = strlen(curr_msg);
+        if (curr_msg[len-1] == '\n') {
+            curr_msg[strlen(curr_msg)-1] = 0;
+        }
 
         if (i>0){
             strcat(chat_log, ",");
