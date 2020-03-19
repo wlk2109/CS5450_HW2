@@ -24,7 +24,7 @@ int main(int argc , char *argv[])
     struct sockaddr_in client_address;
     struct sockaddr_in tcp_address;
     struct sockaddr_in udp_address;
-    int tcp_socket, new_tcp_socket, udp_socket, i,j, cmd_type, num_neighbors, valread;
+    int tcp_socket, new_tcp_socket, udp_socket, i,j,neighbor_index, cmd_type, num_neighbors, valread;
     int active = TRUE;
     fd_set active_fd_set, read_fd_set;
 
@@ -280,10 +280,10 @@ int main(int argc , char *argv[])
                             peer_serv_addr.sin_family = AF_INET;
                             peer_serv_addr.sin_addr.s_addr = INADDR_ANY;
 
-                            i = pick_neighbor(num_neighbors);
+                            neighbor_index = pick_neighbor(num_neighbors);
 
                             //printf("selected Neghbor number %d\n",i);
-                            peer_serv_addr.sin_port = htons(neighbor_ports[i]);
+                            peer_serv_addr.sin_port = htons(neighbor_ports[neighbor_index]);
 
                             printf("Sending Message to neighbor on UDP port: %d to port: %d\n ", udp_port,
                                    ntohs(peer_serv_addr.sin_port));
