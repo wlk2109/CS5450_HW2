@@ -1,5 +1,6 @@
 
 #include "p2pApp.h"
+volatile sig_atomic_t anti_entropy = FALSE;
 
 int main(int argc , char *argv[])
 {
@@ -41,6 +42,8 @@ int main(int argc , char *argv[])
     struct client_command *cmd_buf = malloc(sizeof(struct client_command));
     struct message *out_peer_msg_buf = malloc(sizeof(message_t));
     struct message *in_peer_msg_buf = malloc(sizeof(message_t));
+
+    signal(SIGALRM, timeout_hdler);
 
     /* Init vector clock with 1's*/
     for (i=0; i<num_procs; i++){
@@ -113,8 +116,14 @@ int main(int argc , char *argv[])
 
     printf("SERVER STARTED AND WAITING!\n");
 
+    alarm(ANTI_ENT);
+
     while(active == TRUE) {
 
+        if (anti_entropy == TRUE){
+            anti_entropy = FALSE;
+            alarm(ANTI_ENT);
+        }
 
         if (gossip == TRUE){
             gossip = FALSE;
@@ -127,8 +136,10 @@ int main(int argc , char *argv[])
                 fill_message(out_peer_msg_buf, STATUS, pid, pid, 0, vector_clock, msg_log[0], num_procs);
 
                 printf("Sending Intial status Message from UDP port: %d to port: %d\n ", udp_port, ntohs(peer_serv_addr.sin_port));
-                sendto(udp_socket, (const char *) out_peer_msg_buf, sizeof(struct message), MSG_DONTWAIT,
-                       (const struct sockaddr *) &peer_serv_addr, sizeof(peer_serv_addr));
+                if (sendto(udp_socket, (const char *) out_peer_msg_buf, (socklen_t) sizeof(message_t), MSG_DONTWAIT,
+                           (const struct sockaddr *) &peer_serv_addr, sizeof(peer_serv_addr))!= sizeof(struct message)){
+                    perror("Sento Failed.");
+                }
             }
         }
         if (vector_clock[pid] > local_seqnum){
@@ -200,7 +211,6 @@ int main(int argc , char *argv[])
                             if (send(new_tcp_socket, chat_log_out, strlen(chat_log_out), 0) != strlen(chat_log_out)) {
                                 printf("ChatLog Send wrong size\n");
                             }
-
                         } else if (cmd_type == MSG) {
                             /* New Message from client! */
                             /* Always new */
@@ -211,8 +221,8 @@ int main(int argc , char *argv[])
                             local_seqnum++;
 
 
-//                            printf("Filled Rumor Message:\n");
-//                            print_message(out_peer_msg_buf, num_procs);
+                            printf("Filled Rumor Message:\n");
+                            print_message(out_peer_msg_buf, num_procs);
 
                             /* Send new message to nearby server */
 
@@ -249,6 +259,7 @@ int main(int argc , char *argv[])
 
                     if (inc_type == RUMOR){
                         printf("Server %d Received RUMOR message from server %d\n",pid, in_peer_msg_buf->from);
+                        print_message(in_peer_msg_buf, num_procs);
 
                         j = update_log(in_peer_msg_buf, msg_log, num_msgs, msg_ids, vector_clock, num_procs);
                         num_msgs+=j;
@@ -266,11 +277,14 @@ int main(int argc , char *argv[])
 
                                 fill_message(out_peer_msg_buf, STATUS, pid, pid, 0, vector_clock, msg_log[0], num_procs);
 
-                                printf("Server %d Sending  RUMOR Message from port: %d to port: %d\n ", pid,udp_port, ntohs(peer_serv_addr.sin_port));
+                                printf("Server %d Sending STATUS Message from port: %d to port: %d\n ", pid,udp_port, ntohs(peer_serv_addr.sin_port));
+                                print_message(out_peer_msg_buf, num_procs);
 
                                 /* Send new message to nearby server */
-                                sendto(udp_socket, (const char *) out_peer_msg_buf, sizeof(struct message), MSG_DONTWAIT,
-                                       (const struct sockaddr *) &peer_serv_addr, sizeof(peer_serv_addr));
+                                if (sendto(udp_socket, (const char *) out_peer_msg_buf, sizeof(message_t), MSG_DONTWAIT,
+                                       (const struct sockaddr *) &peer_serv_addr, sizeof(peer_serv_addr))!= sizeof(struct message)){
+                                           perror("Sento Failed.");
+                                       }
                             }
                         }
 
@@ -288,8 +302,10 @@ int main(int argc , char *argv[])
 
                         /* Send new message to nearby server */
 
-                        sendto(udp_socket, (const char *) out_peer_msg_buf, sizeof(struct message), MSG_DONTWAIT,
-                               (const struct sockaddr *) &peer_serv_addr, sizeof(peer_serv_addr));
+                        if (sendto(udp_socket, (const char *) out_peer_msg_buf, sizeof(message_t), MSG_DONTWAIT,
+                                   (const struct sockaddr *) &peer_serv_addr, sizeof(peer_serv_addr))!= sizeof(struct message)){
+                            perror("Sento Failed.");
+                        }
                     }
 
                     if (inc_type == STATUS){
@@ -306,6 +322,7 @@ int main(int argc , char *argv[])
                             peer_serv_addr.sin_addr.s_addr = INADDR_ANY;
                             peer_serv_addr.sin_port = htons(neighbor_ports[j]);
 
+
                             msg_idx = search_for_message(msg_ids, num_msgs,next_msg[0],next_msg[1]);
                             if (msg_idx == -1){
                                 printf("search failure");
@@ -314,13 +331,14 @@ int main(int argc , char *argv[])
                             fill_message(out_peer_msg_buf, RUMOR, pid, next_msg[0], next_msg[1], vector_clock, msg_log[msg_idx], num_procs);
 
                             printf("Server %d Sending RUMOR Message from UDP port: %d to port: %d\n ",pid, udp_port, ntohs(peer_serv_addr.sin_port));
-
+                            print_message(out_peer_msg_buf, num_procs);
                             /* Send new message to nearby server */
 
 
-                            sendto(udp_socket, (const char *) out_peer_msg_buf, sizeof(struct message), MSG_DONTWAIT,
-                                   (const struct sockaddr *) &peer_serv_addr, sizeof(peer_serv_addr));
-
+                            if (sendto(udp_socket, (const char *) out_peer_msg_buf, (socklen_t) sizeof(message_t), MSG_DONTWAIT,
+                                       (const struct sockaddr *) &peer_serv_addr, sizeof(peer_serv_addr))!= sizeof(struct message)){
+                                perror("Sento Failed.");
+                            }
 
                         } else if (stat == -1){
                             /* we need messages.
@@ -339,8 +357,10 @@ int main(int argc , char *argv[])
 
                             /* Send new message to nearby server */
 
-                            sendto(udp_socket, (const char *) out_peer_msg_buf, sizeof(struct message), MSG_DONTWAIT,
-                                   (const struct sockaddr *) &peer_serv_addr, sizeof(peer_serv_addr));
+                            if (sendto(udp_socket, (const char *) out_peer_msg_buf, (socklen_t) sizeof(message_t), MSG_DONTWAIT,
+                                       (const struct sockaddr *) &peer_serv_addr, sizeof(peer_serv_addr))!= sizeof(struct message)){
+                                perror("Sento Failed.");
+                            }
 
 
                         }
@@ -363,8 +383,10 @@ int main(int argc , char *argv[])
                                 printf("Sending Message from UDP port: %d to port: %d\n ", udp_port, ntohs(peer_serv_addr.sin_port));
 
                                 /* Send new message to nearby server */
-                                sendto(udp_socket, (const char *) out_peer_msg_buf, sizeof(struct message), MSG_DONTWAIT,
-                                       (const struct sockaddr *) &peer_serv_addr, sizeof(peer_serv_addr));
+                                if (sendto(udp_socket, (const char *) out_peer_msg_buf, (socklen_t) sizeof(message_t), MSG_DONTWAIT,
+                                           (const struct sockaddr *) &peer_serv_addr, sizeof(peer_serv_addr))!= sizeof(struct message)){
+                                    perror("Sento Failed.");
+                                }
                             }
                         }
                     }
@@ -384,4 +406,10 @@ int main(int argc , char *argv[])
     }
     free(msg_log);
     free(msg_ids);
+}
+
+void timeout_hdler(int signum) {
+    printf("\nTimer has gone: %d\n", signum);
+    anti_entropy = TRUE;
+    signal(SIGALRM, timeout_hdler);
 }

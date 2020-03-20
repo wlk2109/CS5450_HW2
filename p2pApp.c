@@ -33,6 +33,9 @@ int parse_input(char *cmd_string, client_command *client_cmd){
         token = strtok(NULL, "\0");
 
         //client_cmd->msg[strlen(client_cmd->msg)-1] = '\0';
+        if (strlen(token)==0){
+            return -1;
+        }
 
         strcpy(client_cmd->msg, token);
 
@@ -210,8 +213,8 @@ int search_for_message(uint16_t **msg_ids, size_t num_msg, uint16_t tar_server, 
  *  return: -1 if server needs to get messages, 0 if nothing to do, 1 if server needs to send message.
  * */
 int read_status_message(int *next_msg, message_t *msg, uint16_t *vector_clock, int num_procs){
-//    printf("processing Status. Current Status:\n");
-//    print_vector_clock(vector_clock, num_procs);
+    printf("processing Status. Current Status:\n");
+    print_vector_clock(vector_clock, num_procs);
 
 
     int need_msgs = FALSE;
@@ -219,8 +222,8 @@ int read_status_message(int *next_msg, message_t *msg, uint16_t *vector_clock, i
 
     uint16_t rcvd_status[num_procs];
     memcpy(rcvd_status, msg->vector_clock, sizeof(vector_clock[0])*num_procs);
-//    printf("received status\n");
-//    print_vector_clock(rcvd_status,num_procs );
+    printf("received status\n");
+    print_vector_clock(rcvd_status,num_procs );
 
     for(j = 0; j<num_procs; j++){
         /* Check each peer's seqnum to determine if the status sender needs messages*/
@@ -230,6 +233,7 @@ int read_status_message(int *next_msg, message_t *msg, uint16_t *vector_clock, i
             //memcpy(next_msg[0],j, sizeof(int));
             next_msg[0] = j;
             next_msg[1] = rcvd_status[j];
+            printf("Selected message from server %d, seqnum %d\n",next_msg[0], next_msg[1]);
             return 1;
         }
         else if (vector_clock[j]  < rcvd_status[j]) {

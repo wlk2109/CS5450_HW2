@@ -98,7 +98,8 @@ def exit(exit=False):
     sys.exit(0)
 
 def timeout():
-    time.sleep(120)
+    time.sleep(1200)
+    print("Timed out!!!!")
     exit(True)
 
 def main():
