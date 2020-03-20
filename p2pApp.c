@@ -13,30 +13,19 @@ int parse_input(char *cmd_string, client_command *client_cmd){
         client_cmd->cmd_type=CRASH;
         return CRASH;
     }
-
     char* token = strtok(cmd_string, " ");
 
-    /* msg <messagID> <message_t>
-     * crash
-     * get chatLog
-     */
-
     if (strcmp(token, "msg")==0){
-
         client_cmd ->cmd_type = MSG;
 
         token = strtok(NULL, " ");
-
         long m_id= strtol(token, NULL, 10);
         client_cmd->msg_id = (uint16_t) m_id;
 
         token = strtok(NULL, "\0");
-
-        //client_cmd->msg[strlen(client_cmd->msg)-1] = '\0';
         if (strlen(token)==0){
             return -1;
         }
-
         strcpy(client_cmd->msg, token);
 
         return MSG;
@@ -195,8 +184,6 @@ size_t add_new_message(char *msg, uint16_t pid, uint16_t seqnum, char **msg_log,
     return 1;
 }
 
-
-
 /* Returns index of specified message_t, or -1 if not in msg log*/
 int search_for_message(uint16_t **msg_ids, size_t num_msg, uint16_t tar_server, uint16_t tar_seqnum){
     int i;
@@ -213,27 +200,19 @@ int search_for_message(uint16_t **msg_ids, size_t num_msg, uint16_t tar_server, 
  *  return: -1 if server needs to get messages, 0 if nothing to do, 1 if server needs to send message.
  * */
 int read_status_message(int *next_msg, message_t *msg, uint16_t *vector_clock, int num_procs){
-    printf("processing Status. Current Status:\n");
-    print_vector_clock(vector_clock, num_procs);
-
-
     int need_msgs = FALSE;
     int j;
 
     uint16_t rcvd_status[num_procs];
     memcpy(rcvd_status, msg->vector_clock, sizeof(vector_clock[0])*num_procs);
-    printf("received status\n");
-    print_vector_clock(rcvd_status,num_procs );
 
     for(j = 0; j<num_procs; j++){
         /* Check each peer's seqnum to determine if the status sender needs messages*/
         if (vector_clock[j]  > rcvd_status[j]){
             /* If server has a higher number, sender needs message.
              * Make msg to send first unread message and return immediately. */
-            //memcpy(next_msg[0],j, sizeof(int));
             next_msg[0] = j;
             next_msg[1] = rcvd_status[j];
-            printf("Selected message from server %d, seqnum %d\n",next_msg[0], next_msg[1]);
             return 1;
         }
         else if (vector_clock[j]  < rcvd_status[j]) {
@@ -296,7 +275,6 @@ void fill_message(message_t *msg_buff, enum message_type type, uint16_t server_p
         msg_buff->message_len = strlen(msg);
         strcpy(msg_buff->msg, msg);
     }
-
     return;
 }
 
@@ -317,14 +295,4 @@ void print_message(message_t *msg, int num_procs){
     printf(" Status vector from message_t:\n");
     print_vector_clock(msg->vector_clock, num_procs);
     return;
-}
-
-ssize_t sendto_peer(int sockfd, const void *out_pkt, size_t len, int flags, const struct sockaddr *to, socklen_t tolen){
-
-    char *buffer = malloc(len);
-    memcpy(buffer, out_pkt, len);
-
-    int retval = sendto(sockfd, buffer, len, flags, to, tolen);
-    free(buffer);
-    return retval;
 }

@@ -121,6 +121,19 @@ int main(int argc , char *argv[])
     while(active == TRUE) {
 
         if (anti_entropy == TRUE){
+            neighbor_index = pick_neighbor(num_neighbors);
+            peer_serv_addr.sin_family = AF_INET;
+            peer_serv_addr.sin_addr.s_addr = INADDR_ANY;
+            peer_serv_addr.sin_port = htons(neighbor_ports[neighbor_index]);
+
+            fill_message(out_peer_msg_buf, STATUS, pid, pid, 0, vector_clock, msg_log[0], num_procs);
+
+            printf("Sending ANTI ENT STATUS Message from UDP port: %d to port: %d\n ", udp_port, ntohs(peer_serv_addr.sin_port));
+            if (sendto(udp_socket, (const char *) out_peer_msg_buf, (socklen_t) sizeof(message_t), MSG_DONTWAIT,
+                       (const struct sockaddr *) &peer_serv_addr, sizeof(peer_serv_addr))!= sizeof(struct message)){
+                perror("Sento Failed.");
+            }
+
             anti_entropy = FALSE;
             alarm(ANTI_ENT);
         }
@@ -146,7 +159,6 @@ int main(int argc , char *argv[])
             local_seqnum = vector_clock[pid];
             printf("updating local seqnum. Now equals%d\n", local_seqnum);
         }
-        /*TODO: Anti entropy timer */
 
         printf("SERVER %d AWAITING INPUT\n\n", pid);
 
@@ -169,8 +181,6 @@ int main(int argc , char *argv[])
             exit (EXIT_FAILURE);
         }
 
-        printf("Server %d received input\n", pid);
-
         /* Service all the sockets with input pending. */
         for (i = 0; i < FD_SETSIZE; ++i) {
 
@@ -178,7 +188,6 @@ int main(int argc , char *argv[])
                 /* PROXY -- SERVER TCP CONNECTION I/O */
                 if ( i == new_tcp_socket) {
                     printf("Server %d: Received a client message on TCP\n", pid);
-                    fflush(stdout);
 
                     /*Check if it was for closing , and also read the incoming message_t*/
                     if ((valread = read( new_tcp_socket , buffer, 1024)) == 0) {
@@ -207,7 +216,6 @@ int main(int argc , char *argv[])
                         } else if (cmd_type == GET) {
                             /* prepare chatlog to send. */
                             send_log(msg_log, num_msgs, chat_log_out);
-                            printf("Server %d: Sending CHATLOG Message on TCP\n ", pid);
                             if (send(new_tcp_socket, chat_log_out, strlen(chat_log_out), 0) != strlen(chat_log_out)) {
                                 printf("ChatLog Send wrong size\n");
                             }
@@ -220,18 +228,11 @@ int main(int argc , char *argv[])
                                          vector_clock, cmd_buf->msg, num_procs);
                             local_seqnum++;
 
-
-                            printf("Filled Rumor Message:\n");
-                            print_message(out_peer_msg_buf, num_procs);
-
                             /* Send new message to nearby server */
+                            neighbor_index = pick_neighbor(num_neighbors);
 
                             peer_serv_addr.sin_family = AF_INET;
                             peer_serv_addr.sin_addr.s_addr = INADDR_ANY;
-
-                            neighbor_index = pick_neighbor(num_neighbors);
-
-                            printf("selected Neighbor number %d\n",neighbor_index);
                             peer_serv_addr.sin_port = htons(neighbor_ports[neighbor_index]);
 
                             printf("Server %d: Sending RUMOR Message from %d to %d\n ", udp_port, udp_port,htons(peer_serv_addr.sin_port));
@@ -240,10 +241,8 @@ int main(int argc , char *argv[])
                         }
                     }
 
-
                     /* SERVER -- SERVER UDP CONNECTION I/O */
                 } else if(i == udp_socket){
-
                     struct sockaddr_in peer_serv_addr;
                     memset(&peer_serv_addr, 0, sizeof(peer_serv_addr));
                     int n, stat, msg_idx;
@@ -367,7 +366,6 @@ int main(int argc , char *argv[])
                         else{
                             if(num_neighbors == 1){
                                 printf("Nothing to do, no more neighbors.\n");
-
                             }
                             else if (rand()%2 == HEADS){
                                 /*Send the message to another neighbor! */
