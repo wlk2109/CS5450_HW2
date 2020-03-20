@@ -90,7 +90,6 @@ int main(int argc , char *argv[])
 
     if ((new_tcp_socket = accept(tcp_socket, (struct sockaddr *) &client_address, (socklen_t *) &tcp_addr_len)) < 0) {
         perror("accept");
-        fflush(stderr);
         exit(EXIT_FAILURE);
     }
 
@@ -115,10 +114,11 @@ int main(int argc , char *argv[])
     get_neighbor_ports(pid, num_procs, neighbor_ports);
 
     printf("SERVER STARTED AND WAITING!\n");
-
     alarm(ANTI_ENT);
 
     while(active == TRUE) {
+
+
 
         if (anti_entropy == TRUE){
             neighbor_index = pick_neighbor(num_neighbors);
@@ -177,8 +177,13 @@ int main(int argc , char *argv[])
 
 
         if (select (FD_SETSIZE, &active_fd_set, NULL, NULL, NULL) < 0) {
-            perror ("select");
-            exit (EXIT_FAILURE);
+            if (errno == EINTR){
+                perror ("select interupted");
+            }
+            else{
+                perror("Other error!");
+                exit(EXIT_FAILURE);
+            }
         }
 
         /* Service all the sockets with input pending. */
@@ -407,7 +412,6 @@ int main(int argc , char *argv[])
 }
 
 void timeout_hdler(int signum) {
-    printf("\nTimer has gone: %d\n", signum);
     anti_entropy = TRUE;
     signal(SIGALRM, timeout_hdler);
 }
