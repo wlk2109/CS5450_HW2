@@ -14,87 +14,70 @@ Failure/No Failure - Does a server fail?
 Fail Msg/No Fail Msg - Are messages sent with failed servers
 
 Easy Cases
+
+0 msgs: OK
+
 Params: No Failure (No Fail Msg)
 
 1 msg (total)
--Middle originator:
--End Originator:
-
+-Middle originator: OK
+-End Originator:    OK
+2+ msg (Total)
+-All Middle:
+-All End:           OK
 1 msg (each)
--All Middle:
--All End:
 -Mixed:
-
 2+ msg (each)
--All Middle:
--All End:
--Mixed:
+-Mixed:             OK
 
 Medium
 Params: Edge Failure (No Fail Msg)
-
 1 msg (total)
 -Middle originator:
 -End Originator:
-
+2+ msg (Total)
+-All Middle:
+-All End:
 1 msg (each)
--All Middle:
--All End:
 -Mixed:
-
 2+ msg (each)
--All Middle:
--All End:
--Mixed:
-
+-Mixed:             OK
 
 Hard
 
 Params: Edge Failure (Fail Msg)
-
 1 msg (total)
 -Middle originator:
 -End Originator:
-
+2+ msg (Total)
+-All Middle:
+-All End:
 1 msg (each)
--All Middle:
--All End:
 -Mixed:
-
 2+ msg (each)
--All Middle:
--All End:
--Mixed:
+-Mixed:             OK
 
 Params:Middle Failure(No Fail Msg)
-
 1 msg (total)
 -Middle originator:
 -End Originator:
-
+2+ msg (Total)
+-All Middle:
+-All End:
 1 msg (each)
--All Middle:
--All End:
--Mixed:
-
+-Mixed:             OK
 2+ msg (each)
--All Middle:
--All End:
--Mixed:
+-Mixed:             OK
 
 Very Hard
 Params:Middle Failure(Fail Msg)
-
 1 msg (total)
 -Middle originator:
 -End Originator:
-
+2+ msg (Total)
+-All Middle:
+-All End:
 1 msg (each)
--All Middle:
--All End:
--Mixed:
-
+-Mixed:             OK
 2+ msg (each)
--All Middle:
--All End:
 -Mixed:

@@ -19,8 +19,6 @@ wait_chat_log = False
 
 started_processes = {}
 
-processes = {}
-
 debug = False
 
 class ClientHandler(Thread):
@@ -92,14 +90,13 @@ def exit(exit=False):
     time.sleep(2)
     for k in threads:
         threads[k].close()
-    subprocess.Popen(['./stopall'], stdout=sys.stdout, stderr=sys.stdout)
+    subprocess.Popen(['./stopall'], stdout=open('/dev/null'), stderr=open('/dev/null'))
     sys.stdout.flush()
     time.sleep(0.1)
     sys.exit(0)
 
 def timeout():
-    time.sleep(1200)
-    print("Timed out!!!!")
+    time.sleep(12000)
     exit(True)
 
 def main():
@@ -136,10 +133,9 @@ def main():
                 time.sleep(2)
             # start the process
             if debug:
-                proc = subprocess.Popen(['./process', str(pid), sp2[2], sp2[3]])
+                subprocess.Popen(['./process', str(pid), sp2[2], sp2[3]])
             else:
-                proc = subprocess.Popen(['./process', str(pid), sp2[2], sp2[3]], stdout=sys.stdout, stderr=sys.stdout)
-            processes[pid] = proc
+                subprocess.Popen(['./process', str(pid), sp2[2], sp2[3]], stdout=open('/dev/null'), stderr=open('/dev/null'))
             # sleep for a while to allow the process be ready
             time.sleep(1)
             # connect to the port of the pid
