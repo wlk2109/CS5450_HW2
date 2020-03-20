@@ -6,8 +6,95 @@
     - On startup
 
 
-TEST CASES:
-edge server fails
-middle server fails
-1,2,3,4 peers
 
+
+TEST CASES:
+
+Failure/No Failure - Does a server fail?
+Fail Msg/No Fail Msg - Are messages sent with failed servers
+
+Easy Cases
+Params: No Failure (No Fail Msg)
+
+1 msg (total)
+-Middle originator:
+-End Originator:
+
+1 msg (each)
+-All Middle:
+-All End:
+-Mixed:
+
+2+ msg (each)
+-All Middle:
+-All End:
+-Mixed:
+
+Medium
+Params: Edge Failure (No Fail Msg)
+
+1 msg (total)
+-Middle originator:
+-End Originator:
+
+1 msg (each)
+-All Middle:
+-All End:
+-Mixed:
+
+2+ msg (each)
+-All Middle:
+-All End:
+-Mixed:
+
+
+Hard
+
+Params: Edge Failure (Fail Msg)
+
+1 msg (total)
+-Middle originator:
+-End Originator:
+
+1 msg (each)
+-All Middle:
+-All End:
+-Mixed:
+
+2+ msg (each)
+-All Middle:
+-All End:
+-Mixed:
+
+Params:Middle Failure(No Fail Msg)
+
+1 msg (total)
+-Middle originator:
+-End Originator:
+
+1 msg (each)
+-All Middle:
+-All End:
+-Mixed:
+
+2+ msg (each)
+-All Middle:
+-All End:
+-Mixed:
+
+Very Hard
+Params:Middle Failure(Fail Msg)
+
+1 msg (total)
+-Middle originator:
+-End Originator:
+
+1 msg (each)
+-All Middle:
+-All End:
+-Mixed:
+
+2+ msg (each)
+-All Middle:
+-All End:
+-Mixed:

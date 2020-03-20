@@ -118,8 +118,6 @@ int main(int argc , char *argv[])
 
     while(active == TRUE) {
 
-
-
         if (anti_entropy == TRUE){
             neighbor_index = pick_neighbor(num_neighbors);
             peer_serv_addr.sin_family = AF_INET;
