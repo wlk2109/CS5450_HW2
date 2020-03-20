@@ -23,10 +23,10 @@ Params: No Failure (No Fail Msg)
 -Middle originator: OK
 -End Originator:    OK
 2+ msg (Total)
--All Middle:
+-All Middle:        OK
 -All End:           OK
 1 msg (each)
--Mixed:
+-Mixed:             OK
 2+ msg (each)
 -Mixed:             OK
 
@@ -80,4 +80,4 @@ Params:Middle Failure(Fail Msg)
 1 msg (each)
 -Mixed:             OK
 2+ msg (each)
--Mixed:
+-Mixed:             OK
