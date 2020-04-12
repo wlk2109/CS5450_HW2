@@ -1,0 +1,7 @@
+0 start 2 10000
+1 start 2 10001
+0 msg 0 WhatsYourName
+0 msg 1 Bob
+0 get chatLog
+1 get chatLog
+exit

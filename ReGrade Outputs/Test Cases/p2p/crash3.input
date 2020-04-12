@@ -1,0 +1,14 @@
+0 start 3 10000
+1 start 3 10001
+2 start 3 10002
+0 msg 0 WhatsYourName
+1 msg 1 Alice
+1 crash
+2 msg 2 Bob
+0 get chatLog
+2 get chatLog
+1 start 4 10003
+0 get chatLog
+1 get chatLog
+2 get chatLog
+exit

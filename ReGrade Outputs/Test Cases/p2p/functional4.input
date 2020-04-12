@@ -1,0 +1,4 @@
+0 start 1 10000
+0 msg 0 WhatsYourName
+0 get chatLog
+exit
